@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-Test cases for Pet Model
+Test cases for Product Model
 """
 
 # pylint: disable=duplicate-code
@@ -77,3 +77,16 @@ class TestYourResourceModel(TestCase):
         self.assertEqual(data.name, resource.name)
 
     # Todo: Add your test cases here...
+
+    def test_read_a_product(self):
+        """It should Read a Product"""
+        product = ProductFactory()
+        logging.debug(product)
+        product.id = None
+        product.create()
+        self.assertIsNotNone(product.id)
+        # Fetch it back
+        found_product = Product.find(product.id)
+        self.assertEqual(found_product.id, product.id)
+        self.assertEqual(found_product.name, product.name)
+        self.assertEqual(found_product.category, product.category)
