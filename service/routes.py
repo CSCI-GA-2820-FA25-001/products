@@ -49,7 +49,7 @@ def index():
 ######################################################################
 # READ A PRODUCT
 ######################################################################
-@app.route("/products/<int:product_id>", methods=["GET"])
+@app.route("/products/<string:product_id>", methods=["GET"])
 def get_product(product_id):
     """
     Retrieve a single Product

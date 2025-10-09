@@ -9,7 +9,6 @@ from flask_sqlalchemy import SQLAlchemy
 from decimal import Decimal, ROUND_HALF_UP
 
 
-
 logger = logging.getLogger("flask.app")
 
 # Create the SQLAlchemy object to be initialized later in init_db()
@@ -18,6 +17,7 @@ db = SQLAlchemy()
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
+
 
 def _round_to_cents(value):
     """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
@@ -28,6 +28,7 @@ def _round_to_cents(value):
     except Exception as e:
         raise DataValidationError(f"Invalid price: {value}") from e
     return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
 
 class Product(db.Model):
     id = db.Column(db.String(63), primary_key=True, nullable=False)
@@ -56,7 +57,9 @@ class Product(db.Model):
         """
         logger.info("Creating %s", self.name)
         if not self.id:
-            raise DataValidationError("Product id must be provided when not autogenerating.")
+            raise DataValidationError(
+                "Product id must be provided when not autogenerating."
+            )
         try:
             db.session.add(self)
             db.session.commit()
@@ -97,10 +100,9 @@ class Product(db.Model):
             "price": float(self.price) if self.price is not None else None,
             "image_url": self.image_url,
             "available": self.available,
-            }
+        }
 
     def deserialize(self, data):
-
         """
         Deserializes a Product from a dictionary
 

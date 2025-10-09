@@ -37,7 +37,7 @@ BASE_URL = "/products"
 #  T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceService(TestCase):
+class TestProductService(TestCase):
     """REST API Server Tests"""
 
     @classmethod
@@ -96,7 +96,7 @@ class TestYourResourceService(TestCase):
     # ----------------------------------------------------------
     # TEST CREATE
     # ----------------------------------------------------------
-    def test_create_product(self):
+    def test_create_a_product(self):
         """It should Create a new Product"""
         test_product = ProductFactory()
         logging.debug("Test Product: %s", test_product.serialize())
