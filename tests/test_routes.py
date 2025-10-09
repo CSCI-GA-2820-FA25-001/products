@@ -25,29 +25,12 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Product
-from tests.factories import ProductFactory
+from .factories import ProductFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
-BASE_URL = "/product"
-
-############################################################
-# Utility function to bulk create product
-############################################################
-def _create_product(self, count: int = 1) -> list:
-    """Factory method to create product in bulk"""
-    product = []
-    for _ in range(count):
-        test_product = ProductFactory()
-        response = self.client.post(BASE_URL, json=test_product.serialize())
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, "Could not create test product"
-        )
-        new_product = response.get_json()
-        test_product.id = new_product["id"]
-        product.append(test_product)
-    return product
+BASE_URL = "/products"
 
 
 ######################################################################
@@ -86,6 +69,25 @@ class TestYourResourceService(TestCase):
     #  P L A C E   T E S T   C A S E S   H E R E
     ######################################################################
 
+    ############################################################
+    # Utility function to bulk create product
+    ############################################################
+    def _create_product(self, count: int = 1) -> list:
+        """Factory method to create product in bulk"""
+        product = []
+        for _ in range(count):
+            test_product = ProductFactory()
+            response = self.client.post(BASE_URL, json=test_product.serialize())
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test product",
+            )
+            new_product = response.get_json()
+            test_product.id = new_product["id"]
+            product.append(test_product)
+        return product
+
     def test_index(self):
         """It should call the home page"""
         resp = self.client.get("/")
@@ -115,7 +117,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(new_product["available"], test_product.available)
 
         # Check that the location header was correct
-        # todo comment this out when we get get_products
+        # TODO: Uncomment this when we get get_products
         # response = self.client.get(location)
         # self.assertEqual(response.status_code, status.HTTP_200_OK)
         # new_product = response.get_json()
