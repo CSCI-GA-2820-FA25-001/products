@@ -19,15 +19,15 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
 
-def _round_to_cents(value):
-    """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
-    if value is None:
-        return None
-    try:
-        d = Decimal(str(value))
-    except Exception as e:
-        raise DataValidationError(f"Invalid price: {value}") from e
-    return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+# def _round_to_cents(value):
+#     """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
+#     if value is None:
+#         return None
+#     try:
+#         d = Decimal(str(value))
+#     except Exception as e:
+#         raise DataValidationError(f"Invalid price: {value}") from e
+#     return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class Product(db.Model):
@@ -112,7 +112,7 @@ class Product(db.Model):
         try:
             self.id = data["id"]
             self.name = data["name"]
-            self.price = _round_to_cents(data["price"])
+            self.price = data["price"]
             self.description = data.get("description")
             self.image_url = data.get("image_url")
             if isinstance(data["available"], bool):
