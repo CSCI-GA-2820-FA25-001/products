@@ -37,7 +37,7 @@ BASE_URL = "/products"
 #  T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceService(TestCase):
+class TestProductService(TestCase):
     """REST API Server Tests"""
 
     @classmethod
@@ -72,7 +72,7 @@ class TestYourResourceService(TestCase):
     ############################################################
     # Utility function to bulk create product
     ############################################################
-    def _create_product(self, count: int = 1) -> list:
+    def _create_products(self, count: int = 1) -> list:
         """Factory method to create product in bulk"""
         product = []
         for _ in range(count):
@@ -96,7 +96,7 @@ class TestYourResourceService(TestCase):
     # ----------------------------------------------------------
     # TEST CREATE
     # ----------------------------------------------------------
-    def test_create_product(self):
+    def test_create_a_product(self):
         """It should Create a new Product"""
         test_product = ProductFactory()
         logging.debug("Test Product: %s", test_product.serialize())
@@ -127,3 +127,25 @@ class TestYourResourceService(TestCase):
         # self.assertEqual(new_product["price"], test_product.price)
         # self.assertEqual(new_product["image_url"], test_product.image_url)
         # self.assertEqual(new_product["available"], test_product.available)
+
+    # Todo: Add your test cases here...
+
+    # ----------------------------------------------------------
+    # TEST READ
+    # ----------------------------------------------------------
+    def test_get_product(self):
+        """It should Get a single Product"""
+        # get the id of a product
+        test_product = self._create_products(1)[0]
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["name"], test_product.name)
+
+    def test_get_product_not_found(self):
+        """It should not Get a Product thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])
