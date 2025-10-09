@@ -72,6 +72,7 @@ class TestProductModel(TestCaseBase):
     #  T E S T   C A S E S
     ######################################################################
 
+    # Todo: Add your test cases here...
     def test_create_a_product(self):
         """It should create a Product"""
         # Todo: Remove this test case example
@@ -84,7 +85,11 @@ class TestProductModel(TestCaseBase):
         self.assertEqual(data.name, product.name)
         self.assertEqual(data.price, product.price)
 
-    # Todo: Add your test cases here...
+    def test_create_a_bad_product(self):
+        """It should create a bad Product"""
+        product = ProductFactory()
+        product.name = None
+        self.assertRaises(DataValidationError, product.create)
 
     def test_read_a_product(self):
         """It should Read a Product"""
