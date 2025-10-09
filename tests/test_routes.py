@@ -98,7 +98,7 @@ class TestProductService(TestCase):
 
     def test_delete_product(self):
         """It should Delete a Product"""
-        test_product = self._create_product(1)[0]
+        test_product = self._create_products(1)[0]
         response = self.client.delete(f"{BASE_URL}/{test_product.id}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
