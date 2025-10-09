@@ -165,8 +165,16 @@ class TestProductService(TestCase):
         # update the product
         new_product = response.get_json()
         logging.debug(new_product)
-        new_product["description"] = "unknown"
+        new_product["name"] = "new name"
+        new_product["description"] = "new description"
+        new_product["price"] = 12.5
+        new_product["image_url"] = "unknown"
+        new_product["available"] = True
         response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_product = response.get_json()
-        self.assertEqual(updated_product["description"], "unknown")
+        self.assertEqual(updated_product["name"], "new name")
+        self.assertEqual(updated_product["description"], "new description")
+        self.assertEqual(updated_product["price"], 12.5)
+        self.assertEqual(updated_product["image_url"], "unknown")
+        self.assertEqual(updated_product["available"], True)
