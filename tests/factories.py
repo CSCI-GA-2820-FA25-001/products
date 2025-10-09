@@ -1,6 +1,7 @@
 """
 Test Factory to make fake objects for testing
 """
+
 import random
 import factory
 from service.models import Product
@@ -13,7 +14,8 @@ class ProductFactory(factory.Factory):
         """Maps factory to data model"""
 
         model = Product
-    id = factory.Sequence(lambda n: f"SKU-{n:06d}") 
+
+    id = factory.Sequence(lambda n: f"SKU-{n:06d}")
     # Required fields
     name = factory.Faker("word")
     # 2-decimal price; your model rounds anyway, but we’ll format correctly

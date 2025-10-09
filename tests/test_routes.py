@@ -31,6 +31,7 @@ from .factories import ProductFactory
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
+
 BASE_URL = "/products"
 
 BASE_URL = "/products"
@@ -67,13 +68,6 @@ class TestProductService(TestCase):
         """This runs after each test"""
         db.session.remove()
 
-    ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
-    ######################################################################
-
-    ############################################################
-    # Utility function to bulk create product
-    ############################################################
     def _create_products(self, count: int = 1) -> list:
         """Factory method to create product in bulk"""
         product = []
@@ -89,6 +83,16 @@ class TestProductService(TestCase):
             test_product.id = new_product["id"]
             product.append(test_product)
         return product
+
+    ######################################################################
+    #  P L A C E   T E S T   C A S E S   H E R E
+    ######################################################################
+
+    ############################################################
+    # Utility function to bulk create product
+    ############################################################
+
+    # Todo: Add your test cases here...
 
     def test_index(self):
         """It should call the home page"""
@@ -147,8 +151,6 @@ class TestProductService(TestCase):
         # self.assertEqual(new_product["image_url"], test_product.image_url)
         # self.assertEqual(new_product["available"], test_product.available)
 
-    # Todo: Add your test cases here...
-
     # ----------------------------------------------------------
     # TEST READ
     # ----------------------------------------------------------
@@ -168,3 +170,30 @@ class TestProductService(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
+    # ----------------------------------------------------------
+    # TEST UPDATE
+    # ----------------------------------------------------------
+    def test_update_product(self):
+        """It should Update an existing Product"""
+        # create a product to update
+        test_product = ProductFactory()
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the product
+        new_product = response.get_json()
+        logging.debug(new_product)
+        new_product["name"] = "new name"
+        new_product["description"] = "new description"
+        new_product["price"] = 12.5
+        new_product["image_url"] = "unknown"
+        new_product["available"] = True
+        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["name"], "new name")
+        self.assertEqual(updated_product["description"], "new description")
+        self.assertEqual(updated_product["price"], 12.5)
+        self.assertEqual(updated_product["image_url"], "unknown")
+        self.assertEqual(updated_product["available"], True)
