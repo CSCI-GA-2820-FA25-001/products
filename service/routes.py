@@ -103,7 +103,7 @@ def check_content_type(content_type) -> None:
 ######################################################################
 # DELETE A PRODUCT
 ######################################################################
-@app.route("/products/<int:product_id>", methods=["DELETE"])
+@app.route("/products/<string:product_id>", methods=["DELETE"])
 def delete_products(product_id):
     """
     Delete a Product
