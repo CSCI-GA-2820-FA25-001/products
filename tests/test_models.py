@@ -77,8 +77,6 @@ class TestProduct(TestCase):
         self.assertEqual(data.name, product.name)
         self.assertEqual(data.price, product.price)
 
-    # Todo: Add your test cases here...
-
     def test_read_a_product(self):
         """It should Read a Product"""
         product = ProductFactory()
@@ -94,3 +92,15 @@ class TestProduct(TestCase):
         self.assertEqual(found_product.price, product.price)
         self.assertEqual(found_product.image_url, product.image_url)
         self.assertEqual(found_product.available, product.available)
+
+    def test_list_all_products(self):
+        """It should List all Products in the database"""
+        products = Product.all()
+        self.assertEqual(products, [])
+        # Create 5 Products
+        for _ in range(5):
+            product = ProductFactory()
+            product.create()
+        # See if we get back 5 products
+        products = Product.all()
+        self.assertEqual(len(products), 5)

@@ -128,8 +128,6 @@ class TestProductService(TestCase):
         # self.assertEqual(new_product["image_url"], test_product.image_url)
         # self.assertEqual(new_product["available"], test_product.available)
 
-    # Todo: Add your test cases here...
-
     # ----------------------------------------------------------
     # TEST READ
     # ----------------------------------------------------------
@@ -149,3 +147,14 @@ class TestProductService(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
+    # ----------------------------------------------------------
+    # TEST LIST
+    # ----------------------------------------------------------
+    def test_get_product_list(self):
+        """It should Get a list of Products"""
+        self._create_products(5)
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
