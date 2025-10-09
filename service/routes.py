@@ -44,3 +44,33 @@ def index():
 ######################################################################
 
 # Todo: Place your REST API code here ...
+
+######################################################################
+# CREATE A NEW PET
+######################################################################
+@app.route("/products", methods=["POST"])
+def create_products():
+    """
+    Create a Product
+    This endpoint will create a Product based the data in the body that is posted
+    """
+    app.logger.info("Request to Create a Product...")
+    check_content_type("application/json")
+
+    product = Product()
+    # Get the data from the request and deserialize it
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    product.deserialize(data)
+
+    # Save the new Product to the database
+    product.create()
+    app.logger.info("Product with new id [%s] saved!", product.id)
+
+    # Return the location of the new Product
+    
+    # TODO: Uncomment this when get_products
+    # location_url = url_for("get_products", product_id=product.id, _external=True)
+    
+    location_url = "unknown"
+    return jsonify(product.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
