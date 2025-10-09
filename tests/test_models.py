@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-Test cases for Pet Model
+Test cases for Product Model
 """
 
 # pylint: disable=duplicate-code
@@ -65,7 +65,7 @@ class TestProduct(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_create_account(self):
+    def test_create_a_product(self):
         """It should create a Product"""
         # Todo: Remove this test case example
         product = ProductFactory()
@@ -77,3 +77,20 @@ class TestProduct(TestCase):
         self.assertEqual(data.name, product.name)
         self.assertEqual(data.price, product.price)
 
+    # Todo: Add your test cases here...
+
+    def test_read_a_product(self):
+        """It should Read a Product"""
+        product = ProductFactory()
+        logging.debug(product)
+
+        product.create()
+        self.assertIsNotNone(product.id)
+        # Fetch it back
+        found_product = Product.find(product.id)
+        self.assertEqual(found_product.id, product.id)
+        self.assertEqual(found_product.name, product.name)
+        self.assertEqual(found_product.description, product.description)
+        self.assertEqual(found_product.price, product.price)
+        self.assertEqual(found_product.image_url, product.image_url)
+        self.assertEqual(found_product.available, product.available)
