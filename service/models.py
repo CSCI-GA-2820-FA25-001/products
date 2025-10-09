@@ -4,9 +4,9 @@ Models for Product
 All of the models are stored in this module
 """
 
+from decimal import Decimal, ROUND_HALF_UP
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from decimal import Decimal, ROUND_HALF_UP
 
 
 logger = logging.getLogger("flask.app")
@@ -97,7 +97,7 @@ class Product(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "price": float(self.price) if self.price is not None else None,
+            "price": self.price if self.price is not None else None,
             "image_url": self.image_url,
             "available": self.available,
         }
@@ -115,7 +115,13 @@ class Product(db.Model):
             self.price = _round_to_cents(data["price"])
             self.description = data.get("description")
             self.image_url = data.get("image_url")
-            self.available = bool(data.get("available", True))
+            if isinstance(data["available"], bool):
+                self.available = data["available"]
+            else:
+                raise DataValidationError(
+                    "Invalid type for boolean [available]: "
+                    + str(type(data["available"]))
+                )
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:

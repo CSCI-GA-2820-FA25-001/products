@@ -21,6 +21,7 @@ TestProduct API Service Test Suite
 # pylint: disable=duplicate-code
 import os
 import logging
+from decimal import Decimal
 from unittest import TestCase
 from wsgi import app
 from service.common import status
@@ -35,6 +36,7 @@ DATABASE_URI = os.getenv(
 BASE_URL = "/products"
 
 BASE_URL = "/products"
+
 
 ######################################################################
 #  T E S T   C A S E S
@@ -99,7 +101,6 @@ class TestProductService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-
     def test_delete_product(self):
         """It should Delete a Product"""
         test_product = self._create_products(1)[0]
@@ -135,7 +136,7 @@ class TestProductService(TestCase):
         self.assertEqual(new_product["id"], test_product.id)
         self.assertEqual(new_product["name"], test_product.name)
         self.assertEqual(new_product["description"], test_product.description)
-        self.assertEqual(new_product["price"], test_product.price)
+        self.assertEqual(Decimal(new_product["price"]), test_product.price)
         self.assertEqual(new_product["image_url"], test_product.image_url)
         self.assertEqual(new_product["available"], test_product.available)
 
@@ -186,7 +187,7 @@ class TestProductService(TestCase):
         logging.debug(new_product)
         new_product["name"] = "new name"
         new_product["description"] = "new description"
-        new_product["price"] = 12.5
+        new_product["price"] = Decimal("12.5")
         new_product["image_url"] = "unknown"
         new_product["available"] = True
         response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
@@ -194,6 +195,6 @@ class TestProductService(TestCase):
         updated_product = response.get_json()
         self.assertEqual(updated_product["name"], "new name")
         self.assertEqual(updated_product["description"], "new description")
-        self.assertEqual(updated_product["price"], 12.5)
+        self.assertEqual(Decimal(updated_product["price"]), Decimal("12.5"))
         self.assertEqual(updated_product["image_url"], "unknown")
         self.assertEqual(updated_product["available"], True)

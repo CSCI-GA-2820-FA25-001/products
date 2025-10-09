@@ -3,6 +3,7 @@ Test Factory to make fake objects for testing
 """
 
 import random
+from decimal import Decimal
 import factory
 from service.models import Product
 
@@ -19,7 +20,7 @@ class ProductFactory(factory.Factory):
     # Required fields
     name = factory.Faker("word")
     # 2-decimal price; your model rounds anyway, but we’ll format correctly
-    price = factory.LazyFunction(lambda: round(random.uniform(1, 999), 2))
+    price = factory.LazyFunction(lambda: Decimal(str(round(random.uniform(1, 999), 2))))
 
     # Optional fields
     description = factory.Faker("sentence", nb_words=8)

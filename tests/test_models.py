@@ -31,13 +31,12 @@ DATABASE_URI = os.getenv(
 )
 
 
+#  B A S E   T E S T   C A S E S
 ######################################################################
-#  Product   M O D E L   T E S T   C A S E S
-######################################################################
-# pylint: disable=too-many-public-methods
-class TestProduct(TestCase):
-    """Test Cases for Product Model"""
+class TestCaseBase(TestCase):
+    """Base Test Case for common setup"""
 
+    # pylint: disable=duplicate-code
     @classmethod
     def setUpClass(cls):
         """This runs once before the entire test suite"""
@@ -60,6 +59,14 @@ class TestProduct(TestCase):
     def tearDown(self):
         """This runs after each test"""
         db.session.remove()
+
+
+######################################################################
+#   P R O D U C T  M O D E L   T E S T   C A S E S
+######################################################################
+# pylint: disable=too-many-public-methods
+class TestProductModel(TestCaseBase):
+    """Test Cases for Product Model"""
 
     ######################################################################
     #  T E S T   C A S E S
@@ -103,3 +110,54 @@ class TestProduct(TestCase):
         # delete the product and make sure it isn't in the database
         product.delete()
         self.assertEqual(len(Product.all()), 0)
+
+    def test_serialize_a_product(self):
+        """It should serialize a Product"""
+        product = ProductFactory()
+        data = product.serialize()
+        self.assertNotEqual(data, None)
+        self.assertIn("id", data)
+        self.assertEqual(data["id"], product.id)
+        self.assertIn("name", data)
+        self.assertEqual(data["name"], product.name)
+        self.assertIn("price", data)
+        self.assertEqual(data["price"], product.price)
+        self.assertIn("description", data)
+        self.assertEqual(data["description"], product.description)
+        self.assertIn("image_url", data)
+        self.assertEqual(data["image_url"], product.image_url)
+        self.assertIn("available", data)
+        self.assertEqual(data["available"], product.available)
+
+    def test_deserialize_a_product(self):
+        """It should de-serialize a Product"""
+        data = ProductFactory().serialize()
+        product = Product()
+        product.deserialize(data)
+        self.assertNotEqual(product, None)
+        self.assertEqual(product.id, data["id"])
+        self.assertEqual(product.name, data["name"])
+        self.assertEqual(product.price, data["price"])
+        self.assertEqual(product.description, data["description"])
+        self.assertEqual(product.image_url, data["image_url"])
+        self.assertEqual(product.available, data["available"])
+
+    def test_deserialize_missing_data(self):
+        """It should not deserialize a Product with missing data"""
+        data = {"id": 1, "name": "Kitty"}
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_deserialize_bad_data(self):
+        """It should not deserialize bad data"""
+        data = "this is not a dictionary"
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_deserialize_bad_available(self):
+        """It should not deserialize a bad available attribute"""
+        test_product = ProductFactory()
+        data = test_product.serialize()
+        data["available"] = "true"
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
