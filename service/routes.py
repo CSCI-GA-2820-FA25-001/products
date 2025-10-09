@@ -59,7 +59,7 @@ def get_product(product_id):
     app.logger.info("Request to Retrieve a product with id [%s]", product_id)
 
     # Attempt to find the Product and abort if not found
-    product = YourResourceModel.find(product_id)
+    product = Product.find(product_id)
     if not product:
         abort(
             status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
@@ -67,3 +67,59 @@ def get_product(product_id):
 
     app.logger.info("Returning product: %s", product.name)
     return jsonify(product.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# CREATE A NEW PET
+######################################################################
+@app.route("/products", methods=["POST"])
+def create_products():
+    """
+    Create a Product
+    This endpoint will create a Product based the data in the body that is posted
+    """
+    app.logger.info("Request to Create a Product...")
+    check_content_type("application/json")
+
+    product = Product()
+    # Get the data from the request and deserialize it
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    product.deserialize(data)
+
+    # Save the new Product to the database
+    product.create()
+    app.logger.info("Product with new id [%s] saved!", product.id)
+
+    # Return the location of the new Product
+    # TODO: Uncomment this when we get get_products in
+    # location_url = url_for("get_products", product_id=product.id, _external=True)
+
+    location_url = "Unknown"
+    return (
+        jsonify(product.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
+
+
+######################################################################
+# Checks the ContentType of a request
+######################################################################
+def check_content_type(content_type) -> None:
+    """Checks that the media type is correct"""
+    if "Content-Type" not in request.headers:
+        app.logger.error("No Content-Type specified.")
+        abort(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            f"Content-Type must be {content_type}",
+        )
+
+    if request.headers["Content-Type"] == content_type:
+        return
+
+    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
+    abort(
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        f"Content-Type must be {content_type}",
+    )
