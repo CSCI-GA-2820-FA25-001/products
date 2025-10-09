@@ -47,38 +47,35 @@ def index():
 
 
 ######################################################################
-# CREATE A NEW PET
+# UPDATE AN EXISTING PET
 ######################################################################
-@app.route("/products", methods=["POST"])
-def create_products():
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_products(product_id):
     """
-    Create a Product
-    This endpoint will create a Product based the data in the body that is posted
+    Update a Product
+
+    This endpoint will update a Product based the body that is posted
     """
-    app.logger.info("Request to Create a Product...")
+    app.logger.info("Request to Update a product with id [%s]", product_id)
     check_content_type("application/json")
 
-    product = Product()
-    # Get the data from the request and deserialize it
+    # Attempt to find the Product and abort if not found
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
+        )
+
+    # Update the Product with the new data
     data = request.get_json()
     app.logger.info("Processing: %s", data)
     product.deserialize(data)
 
-    # Save the new Product to the database
-    product.create()
-    app.logger.info("Product with new id [%s] saved!", product.id)
+    # Save the updates to the database
+    product.update()
 
-    # Return the location of the new Product
-
-    # TODO: Uncomment this when get_products
-    # location_url = url_for("get_products", product_id=product.id, _external=True)
-
-    location_url = "unknown"
-    return (
-        jsonify(product.serialize()),
-        status.HTTP_201_CREATED,
-        {"Location": location_url},
-    )
+    app.logger.info("Product with ID: %d updated.", product.id)
+    return jsonify(product.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
