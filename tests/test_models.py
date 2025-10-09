@@ -94,3 +94,12 @@ class TestProduct(TestCase):
         self.assertEqual(found_product.price, product.price)
         self.assertEqual(found_product.image_url, product.image_url)
         self.assertEqual(found_product.available, product.available)
+
+    def test_delete_a_product(self):
+        """It should Delete a Product"""
+        product = ProductFactory()
+        product.create()
+        self.assertEqual(len(Product.all()), 1)
+        # delete the product and make sure it isn't in the database
+        product.delete()
+        self.assertEqual(len(Product.all()), 0)
