@@ -160,6 +160,8 @@ def check_content_type(content_type) -> None:
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {content_type}",
     )
+
+
 ######################################################################
 # DELETE A PRODUCT
 ######################################################################
@@ -180,5 +182,3 @@ def delete_products(product_id):
 
     app.logger.info("Product with ID: %d delete complete.", product_id)
     return {}, status.HTTP_204_NO_CONTENT
-
-

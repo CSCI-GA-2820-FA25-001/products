@@ -3,30 +3,134 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
-This is a skeleton you can use to start your projects.
+# Product Service
 
-**Note:** _Feel free to overwrite this `README.md` file with the one that describes your project._
+A RESTful API service for managing products built with Flask and PostgreSQL.
 
 ## Overview
 
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
+This Product Service provides a complete Create, Read, Update, Delete and List API for managing product information. It's built with Flask and uses PostgreSQL for data persistence.
 
-## Automatic Setup
+## Features
 
-The best way to use this repo is to start your own repo using it as a git template. To do this just press the green **Use this template** button in GitHub and this will become the source for your repository.
+- ✅ Create new products
+- ✅ Retrieve individual products
+- ✅ Update existing products  
+- ✅ Delete products
+- ✅ Data validation and error handling
+- ✅ Comprehensive test coverage
+- ✅ Database migrations
+- ✅ Logging configuration
 
-## Manual Setup
+## Setup
 
-You can also clone this repository and then copy and paste the starter code into your project repo folder on your local computer. Be careful not to copy over your own `README.md` file so be selective in what you copy.
-
-There are 4 hidden files that you will need to copy manually if you use the Mac Finder or Windows Explorer to copy files from this folder into your repo folder.
-
-These should be copied using a bash shell as follows:
-
+### 1. Reposity Configuration
 ```bash
-    cp .gitignore  ../<your_repo_folder>/
-    cp .flaskenv ../<your_repo_folder>/
-    cp .gitattributes ../<your_repo_folder>/
+git clone https://github.com/CSCI-GA-2820-FA25-001/products.git
+```
+
+### 2. Initialize Database
+```bash
+flask db-create
+```
+
+### 3. Run the Application
+```bash
+python wsgi.py
+```
+
+## API Endpoints
+
+### Base URL
+All endpoints are relative to http://localhost:8000
+
+### 1. Get Service Information
+GET /
+Returns service status and information.
+
+### 2. Create a Product
+POST /products
+Creates a new product.
+
+#### Request Body:
+```bash
+json
+{
+  "id": "SKU-000001",
+  "name": "Product Name",
+  "description": "Product description",
+  "price": 29.99,
+  "image_url": "https://example.com/image.jpg",
+  "available": true
+}
+```
+Required Fields: ```id```, ```name```, ```price```
+Optional Fields: ```description```, ```image_url```, ```available``` (defaults to ```true```)
+
+### 3. Get a Product
+GET /products/{product_id}
+Retrieves a specific product by ID.
+
+#### Parameters:
+
+```product_id``` (string) - The product identifier
+
+#### Response:
+```bash
+json
+{
+  "id": "SKU-000001",
+  "name": "Product Name",
+  "description": "Product description",
+  "price": 29.99,
+  "image_url": "https://example.com/image.jpg",
+  "available": true
+}
+```
+#### Status Codes:
+
+```200 OK``` - Product found
+
+```404 Not Found``` - Product not found
+
+### 4. Update a Product
+PUT /products/{product_id}
+Updates an existing product.
+
+#### Parameters:
+
+```product_id``` (string) - The product identifier
+
+#### Request Body: 
+Same as create, all fields required for update
+
+#### Response:
+
+```200 OK``` - Product updated successfully
+
+```404 Not Found``` - Product not found
+
+```400 Bad Request``` - Invalid data
+
+
+### 5. Delete a Product
+DELETE /products/{product_id}
+Deletes a product.
+
+#### Parameters:
+
+```product_id``` (string) - The product identifier
+
+#### Response:
+
+```204 No Content``` - Product deleted successfully
+
+```404 Not Found``` - Product not found (still returns 204)
+
+## Testing
+### Run All Tests
+```bash
+make test
 ```
 
 ## Contents
