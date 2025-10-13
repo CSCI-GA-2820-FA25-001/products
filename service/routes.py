@@ -173,37 +173,33 @@ def list_products():
     products = []
 
     # Parse any arguments from the query string
-    category = request.args.get("id")
+    id = request.args.get("id")
     name = request.args.get("name")
     description = request.args.get("description")
     price = request.args.get("price")
     available = request.args.get("available")
     image_url = request.args.get("image_url")
 
-    if category:
-        app.logger.info("Find by category: %s", category)
-        products = Product.find_by_category(category)
+    if id:
+        app.logger.info("Find by id: %s", id)
+        products = Product.find_by_id(id)
     elif name:
         app.logger.info("Find by name: %s", name)
         products = Product.find_by_name(name)
     elif description:
         app.logger.info("Find by description: %s", description)
-        # create bool from string
         description_value = description.lower() in ["true", "yes", "1"]
         products = Product.find_by_description(description_value)
     elif price:
         app.logger.info("Find by price: %s", price)
-        # create bool from string
         price_value = price.lower() in ["true", "yes", "1"]
         products = Product.find_by_price(price_value)
     elif available:
         app.logger.info("Find by available: %s", available)
-        # create bool from string
         available_value = available.lower() in ["true", "yes", "1"]
         products = Product.find_by_availability(available_value)
     elif image_url:
         app.logger.info("Find by image_url: %s", price)
-        # create bool from string
         image_url = price.lower() in ["true", "yes", "1"]
         products = Product.find_by_price(image_url)
     else:
