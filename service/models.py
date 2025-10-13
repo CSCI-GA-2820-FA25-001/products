@@ -4,9 +4,9 @@ Models for Product
 All of the models are stored in this module
 """
 
+from decimal import Decimal, ROUND_HALF_UP
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from decimal import Decimal, ROUND_HALF_UP
 
 
 logger = logging.getLogger("flask.app")
@@ -19,15 +19,15 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
 
-def _round_to_cents(value):
-    """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
-    if value is None:
-        return None
-    try:
-        d = Decimal(str(value))
-    except Exception as e:
-        raise DataValidationError(f"Invalid price: {value}") from e
-    return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+# def _round_to_cents(value):
+#     """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
+#     if value is None:
+#         return None
+#     try:
+#         d = Decimal(str(value))
+#     except Exception as e:
+#         raise DataValidationError(f"Invalid price: {value}") from e
+#     return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class Product(db.Model):
@@ -73,6 +73,8 @@ class Product(db.Model):
         Updates a Product to the database
         """
         logger.info("Saving %s", self.name)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
         try:
             db.session.commit()
         except Exception as e:
@@ -97,7 +99,7 @@ class Product(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "price": float(self.price) if self.price is not None else None,
+            "price": self.price if self.price is not None else None,
             "image_url": self.image_url,
             "available": self.available,
         }
@@ -112,10 +114,16 @@ class Product(db.Model):
         try:
             self.id = data["id"]
             self.name = data["name"]
-            self.price = _round_to_cents(data["price"])
+            self.price = data["price"]
             self.description = data.get("description")
             self.image_url = data.get("image_url")
-            self.available = bool(data.get("available", True))
+            if isinstance(data["available"], bool):
+                self.available = data["available"]
+            else:
+                raise DataValidationError(
+                    "Invalid type for boolean [available]: "
+                    + str(type(data["available"]))
+                )
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
@@ -154,3 +162,19 @@ class Product(db.Model):
         """
         logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
+
+    @classmethod
+    def find_by_availability(cls, available: bool = True) -> list:
+        """Returns all Products by their availability
+
+        :param available: True for products that are available
+        :type available: str
+
+        :return: a collection of Products that are available
+        :rtype: list
+
+        """
+        if not isinstance(available, bool):
+            raise TypeError("Invalid availability, must be of type boolean")
+        logger.info("Processing available query for %s ...", available)
+        return cls.query.filter(cls.available == available)

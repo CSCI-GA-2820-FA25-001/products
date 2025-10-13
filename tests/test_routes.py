@@ -21,15 +21,20 @@ TestProduct API Service Test Suite
 # pylint: disable=duplicate-code
 import os
 import logging
+from decimal import Decimal
 from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Product
 from .factories import ProductFactory
 
+
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
+
+BASE_URL = "/products"
+
 BASE_URL = "/products"
 
 
@@ -65,13 +70,6 @@ class TestProductService(TestCase):
         """This runs after each test"""
         db.session.remove()
 
-    ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
-    ######################################################################
-
-    ############################################################
-    # Utility function to bulk create product
-    ############################################################
     def _create_products(self, count: int = 1) -> list:
         """Factory method to create product in bulk"""
         product = []
@@ -88,10 +86,36 @@ class TestProductService(TestCase):
             product.append(test_product)
         return product
 
+    ######################################################################
+    #  P L A C E   T E S T   C A S E S   H E R E
+    ######################################################################
+
+    ############################################################
+    # Utility function to bulk create product
+    ############################################################
+
+    # Todo: Add your test cases here...
+
     def test_index(self):
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_delete_product(self):
+        """It should Delete a Product"""
+        test_product = self._create_products(1)[0]
+        response = self.client.delete(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
+        # make sure they are deleted
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_non_existing_product(self):
+        """It should Delete a Product even if it doesn't exist"""
+        response = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
 
     # ----------------------------------------------------------
     # TEST CREATE
@@ -112,7 +136,7 @@ class TestProductService(TestCase):
         self.assertEqual(new_product["id"], test_product.id)
         self.assertEqual(new_product["name"], test_product.name)
         self.assertEqual(new_product["description"], test_product.description)
-        self.assertEqual(new_product["price"], test_product.price)
+        self.assertEqual(Decimal(new_product["price"]), test_product.price)
         self.assertEqual(new_product["image_url"], test_product.image_url)
         self.assertEqual(new_product["available"], test_product.available)
 
@@ -147,6 +171,33 @@ class TestProductService(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
+    # ----------------------------------------------------------
+    # TEST UPDATE
+    # ----------------------------------------------------------
+    def test_update_product(self):
+        """It should Update an existing Product"""
+        # create a product to update
+        test_product = ProductFactory()
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the product
+        new_product = response.get_json()
+        logging.debug(new_product)
+        new_product["name"] = "new name"
+        new_product["description"] = "new description"
+        new_product["price"] = Decimal("12.5")
+        new_product["image_url"] = "unknown"
+        new_product["available"] = True
+        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["name"], "new name")
+        self.assertEqual(updated_product["description"], "new description")
+        self.assertEqual(Decimal(updated_product["price"]), Decimal("12.5"))
+        self.assertEqual(updated_product["image_url"], "unknown")
+        self.assertEqual(updated_product["available"], True)
 
     # ----------------------------------------------------------
     # TEST LIST

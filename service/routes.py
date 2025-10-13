@@ -104,6 +104,43 @@ def create_products():
 
 
 ######################################################################
+# UPDATE AN EXISTING PET
+######################################################################
+@app.route("/products/<string:product_id>", methods=["PUT"])
+def update_products(product_id):
+    """
+    Update a Product
+
+    This endpoint will update a Product based the body that is posted
+    """
+    app.logger.info("Request to Update a product with id [%s]", product_id)
+    check_content_type("application/json")
+
+    # Attempt to find the Product and abort if not found
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
+        )
+
+    # Update the Product with the new data
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    product.deserialize(data)
+
+    # Save the updates to the database
+    product.update()
+
+    app.logger.info("Product with ID: %d updated.", product.id)
+    return jsonify(product.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
+
+
+######################################################################
 # Checks the ContentType of a request
 ######################################################################
 def check_content_type(content_type) -> None:
@@ -176,3 +213,25 @@ def list_products():
     results = [product.serialize() for product in products]
     app.logger.info("Returning %d products", len(results))
     return jsonify(results), status.HTTP_200_OK
+
+
+######################################################################
+# DELETE A PRODUCT
+######################################################################
+@app.route("/products/<string:product_id>", methods=["DELETE"])
+def delete_products(product_id):
+    """
+    Delete a Product
+
+    This endpoint will delete a Product based the id specified in the path
+    """
+    app.logger.info("Request to Delete a product with id [%s]", product_id)
+
+    # Delete the Product if it exists
+    product = Product.find(product_id)
+    if product:
+        app.logger.info("Product with ID: %d found.", product.id)
+        product.delete()
+
+    app.logger.info("Product with ID: %d delete complete.", product_id)
+    return {}, status.HTTP_204_NO_CONTENT
