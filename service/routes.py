@@ -33,10 +33,14 @@ from service.common import status  # HTTP Status Codes
 @app.route("/")
 def index():
     """Root URL response"""
-    return (
-        "Reminder: return some useful information in json format about the service here",
-        status.HTTP_200_OK,
-    )
+    app.logger.info("Request for Root URL")
+    response = {
+        "service": "Product REST API Service",
+        "version": "1.0",
+        "description": "This service manages products for an eCommerce platform.",
+        "list_url": request.host_url.rstrip("/") + url_for("list_products"),
+    }
+    return jsonify(response), status.HTTP_200_OK
 
 
 ######################################################################
@@ -160,6 +164,8 @@ def check_content_type(content_type) -> None:
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {content_type}",
     )
+
+
 ######################################################################
 # DELETE A PRODUCT
 ######################################################################
@@ -180,5 +186,3 @@ def delete_products(product_id):
 
     app.logger.info("Product with ID: %d delete complete.", product_id)
     return {}, status.HTTP_204_NO_CONTENT
-
-
