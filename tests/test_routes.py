@@ -92,8 +92,6 @@ class TestProductService(TestCase):
     # Utility function to bulk create product
     ############################################################
 
-    # Todo: Add your test cases here...
-
     def test_index(self):
         """It should call the home page"""
         resp = self.client.get("/")
@@ -141,16 +139,30 @@ class TestProductService(TestCase):
         self.assertEqual(new_product["available"], test_product.available)
 
         # Check that the location header was correct
-        # TODO: Uncomment this when we get get_products
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["id"], test_product.id)
-        # self.assertEqual(new_product["name"], test_product.name)
-        # self.assertEqual(new_product["description"], test_product.description)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_product = response.get_json()
+        self.assertEqual(new_product["id"], test_product.id)
+        self.assertEqual(new_product["name"], test_product.name)
+        self.assertEqual(new_product["description"], test_product.description)
         # self.assertEqual(new_product["price"], test_product.price)
-        # self.assertEqual(new_product["image_url"], test_product.image_url)
-        # self.assertEqual(new_product["available"], test_product.available)
+        self.assertEqual(Decimal(str(new_product["price"])), test_product.price)
+        self.assertEqual(new_product["image_url"], test_product.image_url)
+        self.assertEqual(new_product["available"], test_product.available)
+
+    def test_create_product_missing_content_type(self):
+        """It should fail when Content-Type header is missing"""
+        response = self.client.post(f"{BASE_URL}", data="{}")  # No Content-Type header
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_product_invalid_content_type(self):
+        """It should fail when Content-Type is incorrect"""
+        response = self.client.post(
+            f"{BASE_URL}",
+            json={"name": "Bad Product"},
+            headers={"Content-Type": "text/plain"},  # Wrong content type
+        )
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ----------------------------------------------------------
     # TEST READ
