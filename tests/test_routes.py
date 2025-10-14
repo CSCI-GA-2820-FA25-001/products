@@ -35,8 +35,6 @@ DATABASE_URI = os.getenv(
 
 BASE_URL = "/products"
 
-BASE_URL = "/products"
-
 
 ######################################################################
 #  T E S T   C A S E S
@@ -100,6 +98,8 @@ class TestProductService(TestCase):
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["service"], "Product REST API Service")
 
     def test_delete_product(self):
         """It should Delete a Product"""
