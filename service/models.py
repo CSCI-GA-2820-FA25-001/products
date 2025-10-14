@@ -31,13 +31,6 @@ class DataValidationError(Exception):
 
 
 class Product(db.Model):
-    id = db.Column(db.String(63), primary_key=True, nullable=False)
-    name = db.Column(db.String(127), nullable=False, index=True)
-    description = db.Column(db.Text, nullable=True)
-    price = db.Column(db.Numeric(10, 2), nullable=False)
-    image_url = db.Column(db.String(255), nullable=True)
-    available = db.Column(db.Boolean, nullable=False, default=True)
-
     """
     Class that represents a Product
     """
@@ -46,7 +39,12 @@ class Product(db.Model):
     # Table Schema
     ##################################################
 
-    # Todo: Place the rest of your schema here...
+    id = db.Column(db.String(63), primary_key=True, nullable=False)
+    name = db.Column(db.String(127), nullable=False, index=True)
+    description = db.Column(db.Text, nullable=True)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
+    available = db.Column(db.Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return f"<Product {self.name} id=[{self.id}]>"
@@ -154,14 +152,14 @@ class Product(db.Model):
         return cls.query.session.get(cls, by_id)
 
     @classmethod
-    def find_by_id(cls, id):
+    def find_by_id(cls, product_id):
         """Returns the Product with the given ID
 
         Args:
-            id (int): the ID of the Product you want to match
+            product_id (int): the ID of the Product you want to match
         """
-        logger.info("Processing ID query for %s ...", id)
-        return cls.query.filter(cls.id == id)
+        logger.info("Processing ID query for %s ...", product_id)
+        return cls.query.filter(cls.id == product_id)
 
     @classmethod
     def find_by_name(cls, name):

@@ -26,5 +26,3 @@ class ProductFactory(factory.Factory):
     description = factory.Faker("sentence", nb_words=8)
     image_url = factory.Faker("image_url")
     available = True
-
-    # Todo: Add your other attributes here...

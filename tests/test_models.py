@@ -75,7 +75,7 @@ class TestProductModel(TestCaseBase):
 
     def test_create_a_product(self):
         """It should create a Product"""
-        # Todo: Remove this test case example
+
         product = ProductFactory()
         product.create()
         self.assertIsNotNone(product.id)
@@ -198,8 +198,15 @@ class TestProductModel(TestCaseBase):
         """It should raise DataValidationError when an AttributeError occurs"""
 
         class BrokenData:
+            """A dummy data class used in tests to simulate AttributeError when accessing keys."""
+
             def __getitem__(self, key):
+                """Always raise AttributeError to simulate broken data access."""
                 raise AttributeError("boom")  # Simulate AttributeError
+
+            def keys(self):
+                """meaningless method just to silence lint."""
+                return []
 
         bad_data = BrokenData()
         product = Product()
