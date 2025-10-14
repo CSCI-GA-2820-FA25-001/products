@@ -36,13 +36,13 @@ flask db-create
 
 ### 3. Run the Application
 ```bash
-python wsgi.py
+flask run
 ```
 
 ## API Endpoints
 
 ### Base URL
-All endpoints are relative to http://localhost:8000
+All endpoints are relative to http://localhost:8080/
 
 ### 1. Get Service Information
 GET /
@@ -112,8 +112,33 @@ Same as create, all fields required for update
 
 ```400 Bad Request``` - Invalid data
 
+### 5. List a Product
+GET /products Retrieves a list of products in the database.
+```bash
+json
+{
+  {
+  "id": "SKU-000001",
+  "name": "Product Name",
+  "description": "Product description",
+  "price": 29.99,
+  "image_url": "https://example.com/image.jpg",
+  "available": true
+  },
+  {
+    {
+    "id": "SKU-000002",
+    "name": "Product Name 2",
+    "description": "Product description 2",
+    "price": 39.99,
+    "image_url": "https://example.com/image2.jpg",
+    "available": false
+  }
+}
+```
+```200 OK``` - Successfully retrieved a list of products
 
-### 5. Delete a Product
+### 6. Delete a Product
 DELETE /products/{product_id}
 Deletes a product.
 
