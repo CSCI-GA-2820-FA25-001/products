@@ -92,8 +92,6 @@ class TestProductService(TestCase):
     # Utility function to bulk create product
     ############################################################
 
-    # Todo: Add your test cases here...
-
     def test_index(self):
         """It should call the home page"""
         resp = self.client.get("/")
@@ -141,16 +139,30 @@ class TestProductService(TestCase):
         self.assertEqual(new_product["available"], test_product.available)
 
         # Check that the location header was correct
-        # TODO: Uncomment this when we get get_products
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["id"], test_product.id)
-        # self.assertEqual(new_product["name"], test_product.name)
-        # self.assertEqual(new_product["description"], test_product.description)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_product = response.get_json()
+        self.assertEqual(new_product["id"], test_product.id)
+        self.assertEqual(new_product["name"], test_product.name)
+        self.assertEqual(new_product["description"], test_product.description)
         # self.assertEqual(new_product["price"], test_product.price)
-        # self.assertEqual(new_product["image_url"], test_product.image_url)
-        # self.assertEqual(new_product["available"], test_product.available)
+        self.assertEqual(Decimal(str(new_product["price"])), test_product.price)
+        self.assertEqual(new_product["image_url"], test_product.image_url)
+        self.assertEqual(new_product["available"], test_product.available)
+
+    def test_create_product_missing_content_type(self):
+        """It should fail when Content-Type header is missing"""
+        response = self.client.post(f"{BASE_URL}", data="{}")  # No Content-Type header
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_product_invalid_content_type(self):
+        """It should fail when Content-Type is incorrect"""
+        response = self.client.post(
+            f"{BASE_URL}",
+            json={"name": "Bad Product"},
+            headers={"Content-Type": "text/plain"},  # Wrong content type
+        )
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ----------------------------------------------------------
     # TEST READ
@@ -204,6 +216,78 @@ class TestProductService(TestCase):
     # ----------------------------------------------------------
     def test_get_product_list(self):
         """It should Get a list of Products"""
+        self._create_products(5)
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
+    def test_find_by_id(self):
+        """It should Find Products by ID"""
+        test_product = self._create_products(1)[0]
+        response = self.client.get(BASE_URL, query_string={"id": test_product.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        # You can assert at least that the returned list includes the correct ID
+        self.assertTrue(any(p["id"] == test_product.id for p in data))
+
+    def test_find_by_name(self):
+        """It should Find Products by name"""
+        test_product = self._create_products(1)[0]
+        response = self.client.get(BASE_URL, query_string={"name": test_product.name})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertTrue(all(p["name"] == test_product.name for p in data))
+
+    def test_find_by_description(self):
+        """It should Find Products by description"""
+        test_product = self._create_products(1)[0]
+        response = self.client.get(
+            BASE_URL, query_string={"description": test_product.description}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertTrue(all(p["description"] == test_product.description for p in data))
+
+    def test_find_by_price_valid(self):
+        """It should Find Products by valid price"""
+        test_product = self._create_products(1)[0]
+        response = self.client.get(
+            BASE_URL, query_string={"price": str(test_product.price)}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertTrue(all(str(p["price"]) == str(test_product.price) for p in data))
+
+    def test_find_by_price_invalid(self):
+        """It should return 400 for invalid price"""
+        response = self.client.get(BASE_URL, query_string={"price": "not-a-number"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_find_by_availability_true(self):
+        """It should Find Products that are available"""
+        self._create_products(3)
+        response = self.client.get(BASE_URL, query_string={"available": "true"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_find_by_availability_false(self):
+        """It should Find Products that are unavailable"""
+        self._create_products(3)
+        response = self.client.get(BASE_URL, query_string={"available": "false"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_find_by_image_url(self):
+        """It should Find Products by image_url"""
+        test_product = self._create_products(1)[0]
+        response = self.client.get(
+            BASE_URL, query_string={"image_url": test_product.image_url}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertTrue(all(p["image_url"] == test_product.image_url for p in data))
+
+    def test_find_all_products(self):
+        """It should Find all Products when no query params given"""
         self._create_products(5)
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
