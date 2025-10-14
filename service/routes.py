@@ -167,6 +167,55 @@ def check_content_type(content_type) -> None:
 
 
 ######################################################################
+# LIST ALL PETS
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """Returns all of the Products"""
+    app.logger.info("Request for product list")
+
+    products = []
+
+    # Parse any arguments from the query string
+    id = request.args.get("id")
+    name = request.args.get("name")
+    description = request.args.get("description")
+    price = request.args.get("price")
+    available = request.args.get("available")
+    image_url = request.args.get("image_url")
+
+    if id:
+        app.logger.info("Find by id: %s", id)
+        products = Product.find_by_id(id)
+    elif name:
+        app.logger.info("Find by name: %s", name)
+        products = Product.find_by_name(name)
+    elif description:
+        app.logger.info("Find by description: %s", description)
+        description_value = description.lower() in ["true", "yes", "1"]
+        products = Product.find_by_description(description_value)
+    elif price:
+        app.logger.info("Find by price: %s", price)
+        price_value = price.lower() in ["true", "yes", "1"]
+        products = Product.find_by_price(price_value)
+    elif available:
+        app.logger.info("Find by available: %s", available)
+        available_value = available.lower() in ["true", "yes", "1"]
+        products = Product.find_by_availability(available_value)
+    elif image_url:
+        app.logger.info("Find by image_url: %s", price)
+        image_url = price.lower() in ["true", "yes", "1"]
+        products = Product.find_by_price(image_url)
+    else:
+        app.logger.info("Find all")
+        products = Product.all()
+
+    results = [product.serialize() for product in products]
+    app.logger.info("Returning %d products", len(results))
+    return jsonify(results), status.HTTP_200_OK
+
+
+######################################################################
 # DELETE A PRODUCT
 ######################################################################
 @app.route("/products/<string:product_id>", methods=["DELETE"])

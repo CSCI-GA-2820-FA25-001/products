@@ -198,3 +198,14 @@ class TestProductService(TestCase):
         self.assertEqual(Decimal(updated_product["price"]), Decimal("12.5"))
         self.assertEqual(updated_product["image_url"], "unknown")
         self.assertEqual(updated_product["available"], True)
+
+    # ----------------------------------------------------------
+    # TEST LIST
+    # ----------------------------------------------------------
+    def test_get_product_list(self):
+        """It should Get a list of Products"""
+        self._create_products(5)
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
