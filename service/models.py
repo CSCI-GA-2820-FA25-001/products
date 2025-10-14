@@ -4,9 +4,9 @@ Models for Product
 All of the models are stored in this module
 """
 
+# from decimal import Decimal, ROUND_HALF_UP
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from decimal import Decimal, ROUND_HALF_UP
 
 
 logger = logging.getLogger("flask.app")
@@ -19,15 +19,15 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
 
-def _round_to_cents(value):
-    """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
-    if value is None:
-        return None
-    try:
-        d = Decimal(str(value))
-    except Exception as e:
-        raise DataValidationError(f"Invalid price: {value}") from e
-    return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+# def _round_to_cents(value):
+#     """Return Decimal rounded to 0.01 using HALF_UP; allow int/str/float/Decimal."""
+#     if value is None:
+#         return None
+#     try:
+#         d = Decimal(str(value))
+#     except Exception as e:
+#         raise DataValidationError(f"Invalid price: {value}") from e
+#     return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class Product(db.Model):
@@ -71,6 +71,8 @@ class Product(db.Model):
         Updates a Product to the database
         """
         logger.info("Saving %s", self.name)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
         try:
             db.session.commit()
         except Exception as e:
@@ -95,7 +97,7 @@ class Product(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "price": float(self.price) if self.price is not None else None,
+            "price": self.price if self.price is not None else None,
             "image_url": self.image_url,
             "available": self.available,
         }
@@ -110,10 +112,16 @@ class Product(db.Model):
         try:
             self.id = data["id"]
             self.name = data["name"]
-            self.price = _round_to_cents(data["price"])
+            self.price = data["price"]
             self.description = data.get("description")
             self.image_url = data.get("image_url")
-            self.available = bool(data.get("available", True))
+            if isinstance(data["available"], bool):
+                self.available = data["available"]
+            else:
+                raise DataValidationError(
+                    "Invalid type for boolean [available]: "
+                    + str(type(data["available"]))
+                )
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
@@ -144,6 +152,16 @@ class Product(db.Model):
         return cls.query.session.get(cls, by_id)
 
     @classmethod
+    def find_by_id(cls, product_id):
+        """Returns the Product with the given ID
+
+        Args:
+            product_id (int): the ID of the Product you want to match
+        """
+        logger.info("Processing ID query for %s ...", product_id)
+        return cls.query.filter(cls.id == product_id)
+
+    @classmethod
     def find_by_name(cls, name):
         """Returns all Products with the given name
 
@@ -152,3 +170,57 @@ class Product(db.Model):
         """
         logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
+
+    @classmethod
+    def find_by_description(cls, description: str) -> list:
+        """Returns all Products matching a given description
+
+        :param description: the description of the Products you want to match
+        :type description: str
+
+        :return: a collection of Products with that description
+        :rtype: list
+        """
+        logger.info("Processing description query for %s ...", description)
+        return cls.query.filter(cls.description == description)
+
+    @classmethod
+    def find_by_price(cls, price: float) -> list:
+        """Returns all Products with the given price
+
+        :param price: the price of the Products you want to match
+        :type price: float
+
+        :return: a collection of Products with that price
+        :rtype: list
+        """
+        logger.info("Processing price query for %s ...", price)
+        return cls.query.filter(cls.price == price)
+
+    @classmethod
+    def find_by_availability(cls, available: bool = True) -> list:
+        """Returns all Products by their availability
+
+        :param available: True for products that are available
+        :type available: bool
+
+        :return: a collection of Products that are available
+        :rtype: list
+        """
+        if not isinstance(available, bool):
+            raise TypeError("Invalid availability, must be of type boolean")
+        logger.info("Processing available query for %s ...", available)
+        return cls.query.filter(cls.available == available)
+
+    @classmethod
+    def find_by_image_url(cls, image_url: str) -> list:
+        """Returns all Products with the given image URL
+
+        :param image_url: the image URL of the Products you want to match
+        :type image_url: str
+
+        :return: a collection of Products with that image URL
+        :rtype: list
+        """
+        logger.info("Processing image URL query for %s ...", image_url)
+        return cls.query.filter(cls.image_url == image_url)

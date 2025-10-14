@@ -47,8 +47,6 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-# Todo: Place your REST API code here ...
-
 
 ######################################################################
 # READ A PRODUCT
@@ -175,16 +173,16 @@ def list_products():
     products = []
 
     # Parse any arguments from the query string
-    id = request.args.get("id")
+    product_id = request.args.get("id")
     name = request.args.get("name")
     description = request.args.get("description")
     price = request.args.get("price")
     available = request.args.get("available")
     image_url = request.args.get("image_url")
 
-    if id:
-        app.logger.info("Find by id: %s", id)
-        products = Product.find_by_id(id)
+    if product_id:
+        app.logger.info("Find by id: %s", product_id)
+        products = Product.find_by_id(product_id)
     elif name:
         app.logger.info("Find by name: %s", name)
         products = Product.find_by_name(name)
