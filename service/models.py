@@ -4,7 +4,7 @@ Models for Product
 All of the models are stored in this module
 """
 
-from decimal import Decimal, ROUND_HALF_UP
+# from decimal import Decimal, ROUND_HALF_UP
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
