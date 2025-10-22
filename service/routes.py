@@ -166,6 +166,25 @@ def check_content_type(content_type) -> None:
 ######################################################################
 # LIST ALL PETS
 ######################################################################
+def _handle_price_filter(price):
+    """Handle price equality filtering"""
+    try:
+        price_value = Decimal(price)
+    except (InvalidOperation, TypeError):
+        abort(400, f"Invalid price value: {price}")
+    return Product.find_by_price(price_value)
+
+
+def _handle_price_range_filter(min_price, max_price):
+    """Handle price range filtering"""
+    try:
+        min_val = Decimal(min_price) if min_price else None
+        max_val = Decimal(max_price) if max_price else None
+    except (InvalidOperation, TypeError):
+        abort(400, "Invalid price range values")
+    return Product.find_by_price_range(min_val, max_val)
+
+
 @app.route("/products", methods=["GET"])
 def list_products():
     """Returns all of the Products"""
@@ -193,20 +212,9 @@ def list_products():
         app.logger.info("Find by description: %s", description)
         products = Product.find_by_description(description)
     elif price:
-        app.logger.info("Find by price: %s", price)
-        try:
-            price_value = Decimal(price)
-        except (InvalidOperation, TypeError):
-            abort(400, f"Invalid price value: {price}")
-        products = Product.find_by_price(price_value)
+        products = _handle_price_filter(price)
     elif min_price or max_price:
-        app.logger.info("Find by price range: min=%s, max=%s", min_price, max_price)
-        try:
-            min_val = Decimal(min_price) if min_price is not None else None
-            max_val = Decimal(max_price) if max_price is not None else None
-        except (InvalidOperation, TypeError):
-            abort(400, "Invalid price range values")
-        products = Product.find_by_price_range(min_val, max_val)
+        products = _handle_price_range_filter(min_price, max_price)
     elif available:
         app.logger.info("Find by availability: %s", available)
         available_value = available.lower() in ["true", "yes", "1"]
