@@ -21,6 +21,7 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Product
 """
 
+from decimal import Decimal, InvalidOperation
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
 from service.models import Product
@@ -177,6 +178,8 @@ def list_products():
     name = request.args.get("name")
     description = request.args.get("description")
     price = request.args.get("price")
+    min_price = request.args.get("min_price")
+    max_price = request.args.get("max_price")
     available = request.args.get("available")
     image_url = request.args.get("image_url")
 
@@ -192,10 +195,18 @@ def list_products():
     elif price:
         app.logger.info("Find by price: %s", price)
         try:
-            price_value = float(price)
-        except ValueError:
+            price_value = Decimal(price)
+        except (InvalidOperation, TypeError):
             abort(400, f"Invalid price value: {price}")
         products = Product.find_by_price(price_value)
+    elif min_price or max_price:
+        app.logger.info("Find by price range: min=%s, max=%s", min_price, max_price)
+        try:
+            min_val = Decimal(min_price) if min_price is not None else None
+            max_val = Decimal(max_price) if max_price is not None else None
+        except (InvalidOperation, TypeError):
+            abort(400, "Invalid price range values")
+        products = Product.find_by_price_range(min_val, max_val)
     elif available:
         app.logger.info("Find by availability: %s", available)
         available_value = available.lower() in ["true", "yes", "1"]

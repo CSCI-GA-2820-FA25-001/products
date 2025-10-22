@@ -293,3 +293,65 @@ class TestProductService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 5)
+
+    def test_find_by_price_range_between(self):
+        """It should Find Products within a given price range"""
+        # Create products with known prices
+        p1 = ProductFactory(price=Decimal("5.00"))
+        p2 = ProductFactory(price=Decimal("10.00"))
+        p3 = ProductFactory(price=Decimal("15.00"))
+        p4 = ProductFactory(price=Decimal("25.00"))
+        for p in [p1, p2, p3, p4]:
+            response = self.client.post(BASE_URL, json=p.serialize())
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # GET /products?min_price=6&max_price=20
+        response = self.client.get(
+            BASE_URL, query_string={"min_price": "6", "max_price": "20"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        prices = sorted([Decimal(str(p["price"])) for p in data])
+        self.assertEqual(prices, [Decimal("10.00"), Decimal("15.00")])
+
+    def test_find_by_price_range_min_only(self):
+        """It should Find Products with price >= min_price"""
+        p1 = ProductFactory(price=Decimal("5.00"))
+        p2 = ProductFactory(price=Decimal("10.00"))
+        p3 = ProductFactory(price=Decimal("15.00"))
+        p4 = ProductFactory(price=Decimal("25.00"))
+        for p in [p1, p2, p3, p4]:
+            response = self.client.post(BASE_URL, json=p.serialize())
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # GET /products?min_price=15
+        response = self.client.get(BASE_URL, query_string={"min_price": "15"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        prices = sorted([Decimal(str(p["price"])) for p in data])
+        self.assertEqual(prices, [Decimal("15.00"), Decimal("25.00")])
+
+    def test_find_by_price_range_max_only(self):
+        """It should Find Products with price <= max_price"""
+        p1 = ProductFactory(price=Decimal("5.00"))
+        p2 = ProductFactory(price=Decimal("10.00"))
+        p3 = ProductFactory(price=Decimal("15.00"))
+        p4 = ProductFactory(price=Decimal("25.00"))
+        for p in [p1, p2, p3, p4]:
+            response = self.client.post(BASE_URL, json=p.serialize())
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # GET /products?max_price=10
+        response = self.client.get(BASE_URL, query_string={"max_price": "10"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        prices = sorted([Decimal(str(p["price"])) for p in data])
+        self.assertEqual(prices, [Decimal("5.00"), Decimal("10.00")])
+
+    def test_find_by_price_range_invalid(self):
+        """It should return 400 Bad Request for invalid price range values"""
+        response = self.client.get(BASE_URL, query_string={"min_price": "abc"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        # error handler may use "message" or "error"
+        self.assertTrue("error" in data or "message" in data)
