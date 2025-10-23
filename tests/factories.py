@@ -26,3 +26,4 @@ class ProductFactory(factory.Factory):
     description = factory.Faker("sentence", nb_words=8)
     image_url = factory.Faker("image_url")
     available = True
+    inventory = factory.Faker("pyint", min_value=0, max_value=100)
