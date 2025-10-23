@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/github/CSCI-GA-2820-FA25-001/products/graph/badge.svg?token=PBGUYU3752)](https://codecov.io/github/CSCI-GA-2820-FA25-001/products)
 
 ![CodeCov](https://codecov.io/github/CSCI-GA-2820-FA25-001/products/graphs/tree.svg?token=PBGUYU3752)
-> (CodeCov report)
+> (Codecov report graph)
 
 # Product Service
 
