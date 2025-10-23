@@ -146,7 +146,7 @@ class TestProductService(TestCase):
         self.assertEqual(new_product["name"], test_product.name)
         self.assertEqual(new_product["description"], test_product.description)
         # self.assertEqual(new_product["price"], test_product.price)
-        self.assertEqual(Decimal(str(new_product["price"])), test_product.price)
+        self.assertEqual(Decimal(new_product["price"]), test_product.price)
         self.assertEqual(new_product["image_url"], test_product.image_url)
         self.assertEqual(new_product["available"], test_product.available)
 
@@ -257,7 +257,7 @@ class TestProductService(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        self.assertTrue(all(str(p["price"]) == str(test_product.price) for p in data))
+        self.assertTrue(all(Decimal(p["price"]) == test_product.price for p in data))
 
     def test_find_by_price_invalid(self):
         """It should return 400 for invalid price"""
@@ -311,7 +311,7 @@ class TestProductService(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        prices = sorted([Decimal(str(p["price"])) for p in data])
+        prices = sorted([Decimal(p["price"]) for p in data])
         self.assertEqual(prices, [Decimal("10.00"), Decimal("15.00")])
 
     def test_find_by_price_range_min_only(self):
@@ -328,7 +328,7 @@ class TestProductService(TestCase):
         response = self.client.get(BASE_URL, query_string={"min_price": "15"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        prices = sorted([Decimal(str(p["price"])) for p in data])
+        prices = sorted([Decimal(p["price"]) for p in data])
         self.assertEqual(prices, [Decimal("15.00"), Decimal("25.00")])
 
     def test_find_by_price_range_max_only(self):
@@ -345,7 +345,7 @@ class TestProductService(TestCase):
         response = self.client.get(BASE_URL, query_string={"max_price": "10"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        prices = sorted([Decimal(str(p["price"])) for p in data])
+        prices = sorted([Decimal(p["price"]) for p in data])
         self.assertEqual(prices, [Decimal("5.00"), Decimal("10.00")])
 
     def test_find_by_price_range_invalid(self):
