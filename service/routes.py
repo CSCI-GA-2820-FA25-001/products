@@ -21,6 +21,7 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Product
 """
 
+from decimal import Decimal, InvalidOperation
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
 from service.models import Product
@@ -165,6 +166,25 @@ def check_content_type(content_type) -> None:
 ######################################################################
 # LIST ALL PETS
 ######################################################################
+def _handle_price_filter(price):
+    """Handle price equality filtering"""
+    try:
+        price_value = Decimal(price)
+    except (InvalidOperation, TypeError):
+        abort(400, f"Invalid price value: {price}")
+    return Product.find_by_price(price_value)
+
+
+def _handle_price_range_filter(min_price, max_price):
+    """Handle price range filtering"""
+    try:
+        min_val = Decimal(min_price) if min_price else None
+        max_val = Decimal(max_price) if max_price else None
+    except (InvalidOperation, TypeError):
+        abort(400, "Invalid price range values")
+    return Product.find_by_price_range(min_val, max_val)
+
+
 @app.route("/products", methods=["GET"])
 def list_products():
     """Returns all of the Products"""
@@ -177,6 +197,8 @@ def list_products():
     name = request.args.get("name")
     description = request.args.get("description")
     price = request.args.get("price")
+    min_price = request.args.get("min_price")
+    max_price = request.args.get("max_price")
     available = request.args.get("available")
     image_url = request.args.get("image_url")
 
@@ -190,12 +212,9 @@ def list_products():
         app.logger.info("Find by description: %s", description)
         products = Product.find_by_description(description)
     elif price:
-        app.logger.info("Find by price: %s", price)
-        try:
-            price_value = float(price)
-        except ValueError:
-            abort(400, f"Invalid price value: {price}")
-        products = Product.find_by_price(price_value)
+        products = _handle_price_filter(price)
+    elif min_price or max_price:
+        products = _handle_price_range_filter(min_price, max_price)
     elif available:
         app.logger.info("Find by availability: %s", available)
         available_value = available.lower() in ["true", "yes", "1"]
