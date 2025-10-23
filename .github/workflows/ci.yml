@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -47,3 +48,13 @@ jobs:
         env:
           DATABASE_URI: "postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/postgres"
         run: pytest --pspec --cov=service --cov-fail-under=95 --cov-report=xml
+
+      - name: Install missing dependencies for Codecov
+        run: |
+          apt-get update
+          apt-get install -y git curl gnupg
+          
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
