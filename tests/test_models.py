@@ -80,11 +80,19 @@ class TestProductModel(TestCaseBase):
         product = ProductFactory()
         product.create()
         self.assertIsNotNone(product.id)
+        self.assertIsNotNone(product.name)
+        self.assertIsNotNone(product.price)
+        self.assertIsNotNone(product.available)
+        self.assertIsNotNone(product.inventory)
+
         found = Product.all()
         self.assertEqual(len(found), 1)
+
         data = Product.find(product.id)
         self.assertEqual(data.name, product.name)
         self.assertEqual(data.price, product.price)
+        self.assertEqual(data.available, product.available)
+        self.assertEqual(data.inventory, product.inventory)
 
     def test_create_no_id(self):
         """It should not Create a Product with no id"""
@@ -114,6 +122,7 @@ class TestProductModel(TestCaseBase):
         self.assertEqual(found_product.price, product.price)
         self.assertEqual(found_product.image_url, product.image_url)
         self.assertEqual(found_product.available, product.available)
+        self.assertEqual(found_product.inventory, product.inventory)
 
     def test_update_a_product(self):
         """It should Update a Product"""
@@ -122,7 +131,7 @@ class TestProductModel(TestCaseBase):
         product.create()
         logging.debug(product)
         self.assertIsNotNone(product.id)
-        # Change it an save it
+        # Change it and save it
         product.description = "new description"
         original_id = product.id
         product.update()
@@ -175,6 +184,8 @@ class TestProductModel(TestCaseBase):
         self.assertEqual(data["image_url"], product.image_url)
         self.assertIn("available", data)
         self.assertEqual(data["available"], product.available)
+        self.assertIn("inventory", data)
+        self.assertEqual(data["inventory"], product.inventory)
 
     def test_deserialize_a_product(self):
         """It should de-serialize a Product"""
@@ -188,6 +199,7 @@ class TestProductModel(TestCaseBase):
         self.assertEqual(product.description, data["description"])
         self.assertEqual(product.image_url, data["image_url"])
         self.assertEqual(product.available, data["available"])
+        self.assertEqual(product.inventory, data["inventory"])
 
     def test_deserialize_missing_data(self):
         """It should not deserialize a Product with missing data"""
@@ -282,6 +294,7 @@ class TestModelQueries(TestCaseBase):
         self.assertEqual(product.price, product.price)
         self.assertEqual(product.image_url, product.image_url)
         self.assertEqual(product.available, product.available)
+        self.assertEqual(product.inventory, product.inventory)
 
     def test_find_by_name(self):
         """It should Find a Product by Name"""
@@ -363,3 +376,36 @@ class TestModelQueries(TestCaseBase):
         found = Product.find_by_price_range(max_price=Decimal("10.00"))
         prices = sorted([p.price for p in found])
         self.assertEqual(prices, [Decimal("5.00"), Decimal("10.00")])
+
+    def test_create_and_retrieve_inventory(self):
+        """It should create and retrieve a Product with correct inventory"""
+        product = ProductFactory(inventory=10)
+        product.create()
+
+        # Fetch from DB
+        found = Product.find(product.id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.inventory, 10)
+
+    def test_update_inventory_value(self):
+        """It should update a Product's inventory value"""
+        product = ProductFactory(inventory=5)
+        product.create()
+        self.assertEqual(product.inventory, 5)
+
+        # Update inventory
+        product.inventory = 20
+        product.update()
+
+        updated = Product.find(product.id)
+        self.assertEqual(updated.inventory, 20)
+
+    def test_missing_inventory_raises_error(self):
+        """It should raise DataValidationError when inventory is missing"""
+        product = ProductFactory()
+        data = product.serialize()
+        data.pop("inventory")  # simulate missing field
+
+        new_product = Product()
+        with self.assertRaises(DataValidationError):
+            new_product.deserialize(data)

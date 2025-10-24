@@ -46,6 +46,7 @@ class Product(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     available = db.Column(db.Boolean, nullable=False, default=True)
+    inventory = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
         return f"<Product {self.name} id=[{self.id}]>"
@@ -101,6 +102,7 @@ class Product(db.Model):
             "price": self.price if self.price is not None else None,
             "image_url": self.image_url,
             "available": self.available,
+            "inventory": self.inventory,
         }
 
     def deserialize(self, data):
@@ -116,6 +118,7 @@ class Product(db.Model):
             self.price = data["price"]
             self.description = data.get("description")
             self.image_url = data.get("image_url")
+            self.inventory = data["inventory"]
             if isinstance(data["available"], bool):
                 self.available = data["available"]
             else:
