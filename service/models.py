@@ -46,7 +46,7 @@ class Product(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     available = db.Column(db.Boolean, nullable=False, default=True)
-    inventory = db.Column(db.Integer, nullable=False, default=0)
+    inventory = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
         return f"<Product {self.name} id=[{self.id}]>"
@@ -118,7 +118,7 @@ class Product(db.Model):
             self.price = data["price"]
             self.description = data.get("description")
             self.image_url = data.get("image_url")
-            self.inventory = data.get("inventory")
+            self.inventory = data["inventory"]
             if isinstance(data["available"], bool):
                 self.available = data["available"]
             else:

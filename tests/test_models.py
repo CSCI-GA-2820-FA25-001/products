@@ -376,3 +376,36 @@ class TestModelQueries(TestCaseBase):
         found = Product.find_by_price_range(max_price=Decimal("10.00"))
         prices = sorted([p.price for p in found])
         self.assertEqual(prices, [Decimal("5.00"), Decimal("10.00")])
+
+    def test_create_and_retrieve_inventory(self):
+        """It should create and retrieve a Product with correct inventory"""
+        product = ProductFactory(inventory=10)
+        product.create()
+
+        # Fetch from DB
+        found = Product.find(product.id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.inventory, 10)
+
+    def test_update_inventory_value(self):
+        """It should update a Product's inventory value"""
+        product = ProductFactory(inventory=5)
+        product.create()
+        self.assertEqual(product.inventory, 5)
+
+        # Update inventory
+        product.inventory = 20
+        product.update()
+
+        updated = Product.find(product.id)
+        self.assertEqual(updated.inventory, 20)
+
+    def test_missing_inventory_raises_error(self):
+        """It should raise DataValidationError when inventory is missing"""
+        product = ProductFactory()
+        data = product.serialize()
+        data.pop("inventory")  # simulate missing field
+
+        new_product = Product()
+        with self.assertRaises(DataValidationError):
+            new_product.deserialize(data)
