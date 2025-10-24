@@ -23,6 +23,7 @@ import os
 import logging
 from unittest import TestCase
 from unittest.mock import patch
+from decimal import Decimal
 from wsgi import app
 from service.models import Product, DataValidationError, db
 from .factories import ProductFactory
@@ -330,3 +331,48 @@ class TestModelQueries(TestCaseBase):
         # See if we get back 5 products
         products = Product.all()
         self.assertEqual(len(products), 5)
+
+    def test_find_by_price_range_between(self):
+        """It should Find Products within a price range (min & max inclusive)"""
+        p1 = ProductFactory(price=Decimal("5.00"))
+        p1.create()
+        p2 = ProductFactory(price=Decimal("10.00"))
+        p2.create()
+        p3 = ProductFactory(price=Decimal("15.00"))
+        p3.create()
+        p4 = ProductFactory(price=Decimal("25.00"))
+        p4.create()
+
+        found = Product.find_by_price_range(Decimal("6.00"), Decimal("20.00"))
+        prices = sorted([p.price for p in found])
+        self.assertEqual(prices, [Decimal("10.00"), Decimal("15.00")])
+
+    def test_find_by_price_range_min_only(self):
+        """It should Find Products with price >= min_price"""
+        p1 = ProductFactory(price=Decimal("5.00"))
+        p1.create()
+        p2 = ProductFactory(price=Decimal("10.00"))
+        p2.create()
+        p3 = ProductFactory(price=Decimal("15.00"))
+        p3.create()
+        p4 = ProductFactory(price=Decimal("25.00"))
+        p4.create()
+
+        found = Product.find_by_price_range(min_price=Decimal("15.00"))
+        prices = sorted([p.price for p in found])
+        self.assertEqual(prices, [Decimal("15.00"), Decimal("25.00")])
+
+    def test_find_by_price_range_max_only(self):
+        """It should Find Products with price <= max_price"""
+        p1 = ProductFactory(price=Decimal("5.00"))
+        p1.create()
+        p2 = ProductFactory(price=Decimal("10.00"))
+        p2.create()
+        p3 = ProductFactory(price=Decimal("15.00"))
+        p3.create()
+        p4 = ProductFactory(price=Decimal("25.00"))
+        p4.create()
+
+        found = Product.find_by_price_range(max_price=Decimal("10.00"))
+        prices = sorted([p.price for p in found])
+        self.assertEqual(prices, [Decimal("5.00"), Decimal("10.00")])

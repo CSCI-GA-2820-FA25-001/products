@@ -6,6 +6,7 @@ All of the models are stored in this module
 
 # from decimal import Decimal, ROUND_HALF_UP
 import logging
+from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -199,6 +200,24 @@ class Product(db.Model):
         """
         logger.info("Processing price query for %s ...", price)
         return cls.query.filter(cls.price == price)
+
+    @classmethod
+    def find_by_price_range(cls, min_price=None, max_price=None):
+        """Returns all Products whose price is within the given range (inclusive)."""
+        logger.info(
+            "Processing price range query: min=%s, max=%s", min_price, max_price
+        )
+        query = cls.query
+
+        # Normalize to Decimal for Numeric(10,2)
+        if min_price is not None:
+            min_price = Decimal(str(min_price))
+            query = query.filter(cls.price >= min_price)
+        if max_price is not None:
+            max_price = Decimal(str(max_price))
+            query = query.filter(cls.price <= max_price)
+
+        return query.all()
 
     @classmethod
     def find_by_availability(cls, available: bool = True) -> list:
