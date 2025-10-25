@@ -355,3 +355,67 @@ class TestProductService(TestCase):
         data = response.get_json()
         # error handler may use "message" or "error"
         self.assertTrue("error" in data or "message" in data)
+    def test_purchase_product_successful(self):
+        """It should successfully Purchase a Product with sufficient inventory"""
+        test_product = ProductFactory(available=True, inventory=10)
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        product_id = response.get_json()["id"]
+
+        purchase_data = {"quantity": 3}
+        response = self.client.post(
+            f"{BASE_URL}/{product_id}/purchase",
+            json=purchase_data,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["inventory"], 7)
+
+    def test_purchase_product_unavailable(self):
+        """It should reject Purchase when Product is not available"""
+        test_product = ProductFactory(available=False, inventory=10)
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        product_id = response.get_json()["id"]
+
+        purchase_data = {"quantity": 3}
+        response = self.client.post(
+            f"{BASE_URL}/{product_id}/purchase",
+            json=purchase_data,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+
+    def test_purchase_product_insufficient_inventory(self):
+        """It should reject Purchase when inventory is insufficient"""
+        test_product = ProductFactory(available=True, inventory=2)
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        product_id = response.get_json()["id"]
+
+        purchase_data = {"quantity": 5}
+        response = self.client.post(
+            f"{BASE_URL}/{product_id}/purchase",
+            json=purchase_data,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+
+    def test_purchase_product_inventory_unchanged_on_failure(self):
+        """It should not change inventory when purchase fails"""
+        test_product = ProductFactory(available=False, inventory=10)
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        product_id = response.get_json()["id"]
+
+        purchase_data = {"quantity": 3}
+        self.client.post(
+            f"{BASE_URL}/{product_id}/purchase",
+            json=purchase_data,
+            content_type="application/json",
+        )
+
+        # Check inventory is unchanged
+        response = self.client.get(f"{BASE_URL}/{product_id}")
+        product = response.get_json()
+        self.assertEqual(product["inventory"], 10)
