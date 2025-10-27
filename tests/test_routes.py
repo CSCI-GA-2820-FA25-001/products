@@ -355,6 +355,7 @@ class TestProductService(TestCase):
         data = response.get_json()
         # error handler may use "message" or "error"
         self.assertTrue("error" in data or "message" in data)
+
     def test_purchase_product_successful(self):
         """It should successfully Purchase a Product with sufficient inventory"""
         test_product = ProductFactory(available=True, inventory=10)

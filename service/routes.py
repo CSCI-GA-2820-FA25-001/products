@@ -252,6 +252,7 @@ def delete_products(product_id):
     app.logger.info("Product with ID: %d delete complete.", product_id)
     return {}, status.HTTP_204_NO_CONTENT
 
+
 @app.route("/products/<string:product_id>/purchase", methods=["POST"])
 def purchase_product(product_id):
     """
