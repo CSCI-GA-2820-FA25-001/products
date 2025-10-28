@@ -251,3 +251,59 @@ def delete_products(product_id):
 
     app.logger.info("Product with ID: %d delete complete.", product_id)
     return {}, status.HTTP_204_NO_CONTENT
+
+
+@app.route("/products/<string:product_id>/purchase", methods=["POST"])
+def purchase_product(product_id):
+    """
+    Purchase a Product
+
+    This endpoint will reduce the inventory of a product based on the quantity purchased
+    """
+    app.logger.info("Request to Purchase product with id [%s]", product_id)
+    check_content_type("application/json")
+
+    # Find the product
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
+        )
+
+    # Get the purchase quantity from request
+    data = request.get_json()
+    quantity = data.get("quantity")
+
+    # Validate quantity
+    if quantity is None:
+        abort(status.HTTP_400_BAD_REQUEST, "Quantity is required for purchase")
+
+    if not isinstance(quantity, int) or quantity <= 0:
+        abort(status.HTTP_400_BAD_REQUEST, "Quantity must be a positive integer")
+
+    # Check if product is available
+    if not product.available:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Product '{product.name}' is not available for purchase",
+        )
+
+    # Check if sufficient inventory exists
+    if product.inventory < quantity:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Insufficient inventory. Requested: {quantity}, Available: {product.inventory}",
+        )
+
+    # Update inventory
+    product.inventory -= quantity
+    product.update()
+
+    app.logger.info(
+        "Product with ID: %s purchased. Quantity: %d, Remaining inventory: %d",
+        product_id,
+        quantity,
+        product.inventory,
+    )
+
+    return jsonify(product.serialize()), status.HTTP_200_OK
