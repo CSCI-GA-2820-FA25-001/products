@@ -35,7 +35,6 @@ DATABASE_URI = os.getenv(
 
 BASE_URL = "/products"
 
-
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
@@ -91,6 +90,12 @@ class TestProductService(TestCase):
     ############################################################
     # Utility function to bulk create product
     ############################################################
+    def test_health_check(self):
+        """It should return healthy status"""
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data, {"status": "OK"})
 
     def test_index(self):
         """It should call the home page"""
@@ -420,3 +425,4 @@ class TestProductService(TestCase):
         response = self.client.get(f"{BASE_URL}/{product_id}")
         product = response.get_json()
         self.assertEqual(product["inventory"], 10)
+
