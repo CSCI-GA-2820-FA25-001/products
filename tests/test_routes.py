@@ -39,9 +39,10 @@ BASE_URL = "/products"
 #  T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
+
+
 class TestProductService(TestCase):
     """REST API Server Tests"""
-
     @classmethod
     def setUpClass(cls):
         """Run once before all tests"""
@@ -425,4 +426,3 @@ class TestProductService(TestCase):
         response = self.client.get(f"{BASE_URL}/{product_id}")
         product = response.get_json()
         self.assertEqual(product["inventory"], 10)
-
