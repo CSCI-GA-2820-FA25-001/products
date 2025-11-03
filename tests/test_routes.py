@@ -94,7 +94,7 @@ class TestProductService(TestCase):
     def test_health_check(self):
         """It should return healthy status"""
         response = self.client.get("/health")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(data, {"status": "OK"})
 
