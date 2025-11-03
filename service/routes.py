@@ -29,6 +29,16 @@ from service.common import status  # HTTP Status Codes
 
 
 ######################################################################
+# GET HEALTH CHECK
+######################################################################
+@app.route("/health")
+def health_check():
+    """Let them know our heart is still beating"""
+    app.logger.info("Request for health check")
+    return jsonify(status="OK"), status.HTTP_200_OK
+
+
+######################################################################
 # GET INDEX
 ######################################################################
 @app.route("/")
