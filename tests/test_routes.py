@@ -563,3 +563,75 @@ class TestProductService(TestCase):
         data = resp.get_json()
         returned_prices = [Decimal(item["price"]) for item in data]
         self.assertEqual(returned_prices, sorted(prices))
+
+    def test_sort_query_uses_order_by_clause(self):
+        """It should use SQLAlchemy order_by() when result is a BaseQuery"""
+        p1 = ProductFactory(name="same", price=Decimal("10.00"))
+        p2 = ProductFactory(name="same", price=Decimal("5.00"))
+        for p in [p1, p2]:
+            resp = self.client.post(BASE_URL, json=p.serialize())
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        resp = self.client.get(
+            BASE_URL, query_string={"name": "same", "sort": "price", "order": "asc"}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(prices, [Decimal("5.00"), Decimal("10.00")])
+
+        resp = self.client.get(
+            BASE_URL, query_string={"name": "same", "sort": "price", "order": "desc"}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(prices, [Decimal("10.00"), Decimal("5.00")])
+
+    def test_bad_request_datavalidationerror(self):
+        """It should return 400 via DataValidationError handler"""
+        bad_payload = {
+            "id": "p-1",
+            "name": "Bad",
+            "price": "9.99",
+            "inventory": 5,
+            "available": "yes",
+            "description": "x",
+            "image_url": "http://x",
+        }
+        resp = self.client.post("/products", json=bad_payload)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        data = resp.get_json()
+        self.assertIn("Bad Request", data.get("error", ""))
+        self.assertIn("Invalid type for boolean", data.get("message", ""))
+
+    def test_method_not_allowed_405(self):
+        """It should hit 405 handler for unsupported HTTP method"""
+        resp = self.client.patch("/products", json={})
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        data = resp.get_json()
+        self.assertEqual(data.get("error"), "Method not Allowed")
+        self.assertEqual(data.get("status"), status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_product_not_found(self):
+        """It should return 404 when updating a non-existent Product"""
+        bogus_id = "does-not-exist"
+        payload = ProductFactory(id=bogus_id).serialize()
+        resp = self.client.put(f"{BASE_URL}/{bogus_id}", json=payload)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        data = resp.get_json()
+        self.assertTrue("not found" in data.get("message", "").lower())
+
+    def test_purchase_missing_quantity(self):
+        """It should return 400 when purchase payload misses quantity"""
+        prod = ProductFactory(available=True, inventory=5)
+        resp = self.client.post(BASE_URL, json=prod.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        pid = resp.get_json()["id"]
+
+        resp = self.client.post(
+            f"{BASE_URL}/{pid}/purchase", json={}, content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        data = resp.get_json()
+        self.assertIn("Quantity is required", data.get("message", ""))
