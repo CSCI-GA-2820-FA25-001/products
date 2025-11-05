@@ -43,6 +43,7 @@ BASE_URL = "/products"
 
 class TestProductService(TestCase):
     """REST API Server Tests"""
+
     @classmethod
     def setUpClass(cls):
         """Run once before all tests"""
@@ -426,3 +427,139 @@ class TestProductService(TestCase):
         response = self.client.get(f"{BASE_URL}/{product_id}")
         product = response.get_json()
         self.assertEqual(product["inventory"], 10)
+
+    def test_sort_by_price_ascending(self):
+        """It should return 10 products sorted by price ascending"""
+        prices = [
+            Decimal(x)
+            for x in [
+                "9.00",
+                "1.00",
+                "5.00",
+                "3.00",
+                "7.00",
+                "11.00",
+                "13.00",
+                "19.00",
+                "17.00",
+                "15.00",
+            ]
+        ]
+        created_ids = []
+        for p in prices:
+            prod = ProductFactory(price=p)
+            resp = self.client.post(BASE_URL, json=prod.serialize())
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+            created_ids.append(resp.get_json()["id"])
+
+        resp = self.client.get(BASE_URL, query_string={"sort": "price", "order": "asc"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 10)
+
+        returned_prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(returned_prices, sorted(prices))
+
+    def test_sort_by_price_descending(self):
+        """It should return 10 products sorted by price descending"""
+        prices = [
+            Decimal(x)
+            for x in [
+                "2.00",
+                "12.00",
+                "4.00",
+                "8.00",
+                "6.00",
+                "18.00",
+                "10.00",
+                "14.00",
+                "16.00",
+                "20.00",
+            ]
+        ]
+        for p in prices:
+            prod = ProductFactory(price=p)
+            resp = self.client.post(BASE_URL, json=prod.serialize())
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        resp = self.client.get(
+            BASE_URL, query_string={"sort": "price", "order": "desc"}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 10)
+
+        returned_prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(returned_prices, sorted(prices, reverse=True))
+
+    def test_sort_by_price_within_range_ascending(self):
+        """It should sort products within a price range ascending"""
+        # Create 5 products：5, 10, 15, 20, 25
+        for p in [
+            Decimal("5.00"),
+            Decimal("10.00"),
+            Decimal("15.00"),
+            Decimal("20.00"),
+            Decimal("25.00"),
+        ]:
+            resp = self.client.post(BASE_URL, json=ProductFactory(price=p).serialize())
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        resp = self.client.get(
+            BASE_URL,
+            query_string={
+                "min_price": "10",
+                "max_price": "20",
+                "sort": "price",
+                "order": "asc",
+            },
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        returned_prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(
+            returned_prices, [Decimal("10.00"), Decimal("15.00"), Decimal("20.00")]
+        )
+
+    def test_sort_by_price_within_range_descending(self):
+        """It should sort products within a price range descending"""
+        for p in [
+            Decimal("5.00"),
+            Decimal("10.00"),
+            Decimal("15.00"),
+            Decimal("20.00"),
+            Decimal("25.00"),
+        ]:
+            resp = self.client.post(BASE_URL, json=ProductFactory(price=p).serialize())
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        resp = self.client.get(
+            BASE_URL,
+            query_string={
+                "min_price": "10",
+                "max_price": "20",
+                "sort": "price",
+                "order": "desc",
+            },
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        returned_prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(
+            returned_prices, [Decimal("20.00"), Decimal("15.00"), Decimal("10.00")]
+        )
+
+    def test_sort_by_price_invalid_order_defaults_to_asc(self):
+        """It should default to ascending when order is invalid"""
+        prices = [Decimal(x) for x in ["9.00", "1.00", "5.00"]]
+        for p in prices:
+            resp = self.client.post(BASE_URL, json=ProductFactory(price=p).serialize())
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        resp = self.client.get(
+            BASE_URL, query_string={"sort": "price", "order": "weird"}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        returned_prices = [Decimal(item["price"]) for item in data]
+        self.assertEqual(returned_prices, sorted(prices))

@@ -174,7 +174,7 @@ def check_content_type(content_type) -> None:
 
 
 ######################################################################
-# LIST ALL PETS
+# LIST ALL PRODUCTS
 ######################################################################
 def _handle_price_filter(price):
     """Handle price equality filtering"""
@@ -195,22 +195,30 @@ def _handle_price_range_filter(min_price, max_price):
     return Product.find_by_price_range(min_val, max_val)
 
 
-@app.route("/products", methods=["GET"])
-def list_products():
-    """Returns all of the Products"""
-    app.logger.info("Request for product list")
+def _parse_sort_params(args):
+    """Return (sort, order) after whitelisting and normalization."""
+    sort = args.get("sort")
+    order = (args.get("order") or "asc").lower()
+    if order not in ("asc", "desc"):
+        order = "asc"
 
+    if sort != "price":
+        sort = None
+    return sort, order
+
+
+def _get_filtered_products(args):
+    """Return filtered Products based on query params in priority order."""
     products = []
 
-    # Parse any arguments from the query string
-    product_id = request.args.get("id")
-    name = request.args.get("name")
-    description = request.args.get("description")
-    price = request.args.get("price")
-    min_price = request.args.get("min_price")
-    max_price = request.args.get("max_price")
-    available = request.args.get("available")
-    image_url = request.args.get("image_url")
+    product_id = args.get("id")
+    name = args.get("name")
+    description = args.get("description")
+    price = args.get("price")
+    min_price = args.get("min_price")
+    max_price = args.get("max_price")
+    available = args.get("available")
+    image_url = args.get("image_url")
 
     if product_id:
         app.logger.info("Find by id: %s", product_id)
@@ -235,6 +243,33 @@ def list_products():
     else:
         app.logger.info("Find all")
         products = Product.all()
+
+    return products
+
+
+def _apply_sort(products, sort, order):
+    """Apply sorting if requested; handle BaseQuery and list consistently. Return a list."""
+    if sort == "price":
+        if hasattr(products, "order_by"):  # SQL side
+            col = Product.price
+            return products.order_by(col.asc() if order == "asc" else col.desc()).all()
+        reverse = order == "desc"
+        return sorted(products, key=lambda p: p.price, reverse=reverse)
+
+    if hasattr(products, "all"):
+        return products.all()
+    return products
+
+
+@app.route("/products", methods=["GET"])
+def list_products():
+    """Returns all of the Products"""
+    app.logger.info("Request for product list")
+
+    args = request.args
+    sort, order = _parse_sort_params(args)
+    products = _get_filtered_products(args)
+    products = _apply_sort(products, sort, order)
 
     results = [product.serialize() for product in products]
     app.logger.info("Returning %d products", len(results))
