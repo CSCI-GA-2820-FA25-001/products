@@ -1,7 +1,7 @@
 ##################################################
 # Create production image
 ##################################################
-FROM quay.io/rofrano/python:3.12-slim
+FROM python:3.11-slim
 
 # Set up the Python production environment
 WORKDIR /app
@@ -9,9 +9,11 @@ COPY Pipfile Pipfile.lock ./
 RUN python -m pip install --upgrade pip pipenv && \
     pipenv install --system --deploy
 
+RUN pip install psycopg2-binary
+
 # Copy the application contents
 COPY wsgi.py .
-COPY service ./service
+COPY service/ ./service/
 
 # Switch to a non-root user and set file ownership
 RUN useradd --uid 1001 flask && \

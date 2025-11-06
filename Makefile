@@ -1,8 +1,10 @@
 # These can be overidden with env vars.
+CLUSTER_REGISTRY ?= cluster-registry:5000
 REGISTRY ?= localhost:5000
 IMAGE_NAME ?= products
 IMAGE_TAG ?= 1.0
 IMAGE ?= $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
+CLUSTER_IMAGE ?= $(CLUSTER_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 PLATFORM ?= "linux/amd64,linux/arm64"
 CLUSTER ?= nyu-devops
 
@@ -84,7 +86,7 @@ init:	## Creates the buildx instance
 .PHONY: build
 build:	## Build the project container image for local platform
 	$(info Building $(IMAGE)...)
-	docker build --rm --pull --tag $(IMAGE) .
+	docker build --rm --pull --tag $(IMAGE) --tag $(CLUSTER_IMAGE) .
 
 .PHONY: push
 push:	## Push the image to the container registry
