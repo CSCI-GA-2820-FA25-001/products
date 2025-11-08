@@ -22,12 +22,14 @@ and Delete Product
 """
 
 from decimal import Decimal, InvalidOperation
-from flask import jsonify, request, url_for, abort
+from flask import jsonify, request, url_for, abort, render_template
 from flask import current_app as app  # Import Flask application
 from service.models import Product
 from service.common import status  # HTTP Status Codes
 
-
+@app.route("/ui")
+def ui_index():
+    return render_template("index.html", base_url="")  # change to "/api" later if you prefix API
 ######################################################################
 # GET INDEX
 ######################################################################
