@@ -134,7 +134,7 @@ def update_products(product_id):
     # Save the updates to the database
     product.update()
 
-    app.logger.info("Product with ID: %d updated.", product.id)
+    app.logger.info("Product with ID: %s updated.", product.id)
     return jsonify(product.serialize()), status.HTTP_200_OK
 
 
