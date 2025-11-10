@@ -35,6 +35,16 @@ def ui_index():
 
 
 ######################################################################
+# GET HEALTH CHECK
+######################################################################
+@app.route("/health")
+def health_check():
+    """Let them know our heart is still beating"""
+    app.logger.info("Request for health check")
+    return jsonify(status="OK"), status.HTTP_200_OK
+
+
+######################################################################
 # GET INDEX
 ######################################################################
 @app.route("/")
@@ -170,7 +180,7 @@ def check_content_type(content_type) -> None:
 
 
 ######################################################################
-# LIST ALL PETS
+# LIST ALL PRODUCTS
 ######################################################################
 def _handle_price_filter(price):
     """Handle price equality filtering"""
@@ -191,22 +201,30 @@ def _handle_price_range_filter(min_price, max_price):
     return Product.find_by_price_range(min_val, max_val)
 
 
-@app.route("/products", methods=["GET"])
-def list_products():
-    """Returns all of the Products"""
-    app.logger.info("Request for product list")
+def _parse_sort_params(args):
+    """Return (sort, order) after whitelisting and normalization."""
+    sort = args.get("sort")
+    order = (args.get("order") or "asc").lower()
+    if order not in ("asc", "desc"):
+        order = "asc"
 
+    if sort != "price":
+        sort = None
+    return sort, order
+
+
+def _get_filtered_products(args):
+    """Return filtered Products based on query params in priority order."""
     products = []
 
-    # Parse any arguments from the query string
-    product_id = request.args.get("id")
-    name = request.args.get("name")
-    description = request.args.get("description")
-    price = request.args.get("price")
-    min_price = request.args.get("min_price")
-    max_price = request.args.get("max_price")
-    available = request.args.get("available")
-    image_url = request.args.get("image_url")
+    product_id = args.get("id")
+    name = args.get("name")
+    description = args.get("description")
+    price = args.get("price")
+    min_price = args.get("min_price")
+    max_price = args.get("max_price")
+    available = args.get("available")
+    image_url = args.get("image_url")
 
     if product_id:
         app.logger.info("Find by id: %s", product_id)
@@ -231,6 +249,33 @@ def list_products():
     else:
         app.logger.info("Find all")
         products = Product.all()
+
+    return products
+
+
+def _apply_sort(products, sort, order):
+    """Apply sorting if requested; handle BaseQuery and list consistently. Return a list."""
+    if sort == "price":
+        if hasattr(products, "order_by"):  # SQL side
+            col = Product.price
+            return products.order_by(col.asc() if order == "asc" else col.desc()).all()
+        reverse = order == "desc"
+        return sorted(products, key=lambda p: p.price, reverse=reverse)
+
+    if hasattr(products, "all"):
+        return products.all()
+    return products
+
+
+@app.route("/products", methods=["GET"])
+def list_products():
+    """Returns all of the Products"""
+    app.logger.info("Request for product list")
+
+    args = request.args
+    sort, order = _parse_sort_params(args)
+    products = _get_filtered_products(args)
+    products = _apply_sort(products, sort, order)
 
     results = [product.serialize() for product in products]
     app.logger.info("Returning %d products", len(results))
@@ -257,3 +302,59 @@ def delete_products(product_id):
 
     app.logger.info("Product with ID: %d delete complete.", product_id)
     return {}, status.HTTP_204_NO_CONTENT
+
+
+@app.route("/products/<string:product_id>/purchase", methods=["POST"])
+def purchase_product(product_id):
+    """
+    Purchase a Product
+
+    This endpoint will reduce the inventory of a product based on the quantity purchased
+    """
+    app.logger.info("Request to Purchase product with id [%s]", product_id)
+    check_content_type("application/json")
+
+    # Find the product
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
+        )
+
+    # Get the purchase quantity from request
+    data = request.get_json()
+    quantity = data.get("quantity")
+
+    # Validate quantity
+    if quantity is None:
+        abort(status.HTTP_400_BAD_REQUEST, "Quantity is required for purchase")
+
+    if not isinstance(quantity, int) or quantity <= 0:
+        abort(status.HTTP_400_BAD_REQUEST, "Quantity must be a positive integer")
+
+    # Check if product is available
+    if not product.available:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Product '{product.name}' is not available for purchase",
+        )
+
+    # Check if sufficient inventory exists
+    if product.inventory < quantity:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Insufficient inventory. Requested: {quantity}, Available: {product.inventory}",
+        )
+
+    # Update inventory
+    product.inventory -= quantity
+    product.update()
+
+    app.logger.info(
+        "Product with ID: %s purchased. Quantity: %d, Remaining inventory: %d",
+        product_id,
+        quantity,
+        product.inventory,
+    )
+
+    return jsonify(product.serialize()), status.HTTP_200_OK
