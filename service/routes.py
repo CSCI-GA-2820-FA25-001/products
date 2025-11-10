@@ -30,7 +30,8 @@ from service.common import status  # HTTP Status Codes
 
 @app.route("/ui")
 def ui_index():
-    return render_template("index.html", base_url="")  # change to "/api" later if you prefix API
+    """Render the Admin UI page"""
+    return render_template("index.html", base_url="")
 
 
 ######################################################################
