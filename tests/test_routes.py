@@ -355,3 +355,9 @@ class TestProductService(TestCase):
         data = response.get_json()
         # error handler may use "message" or "error"
         self.assertTrue("error" in data or "message" in data)
+
+    def test_ui_index(self):
+        """It should render the UI page"""
+        response = self.client.get("/ui")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(b"Products Admin UI", response.data)
