@@ -363,6 +363,12 @@ class TestProductService(TestCase):
         # error handler may use "message" or "error"
         self.assertTrue("error" in data or "message" in data)
 
+    def test_ui_index(self):
+        """It should render the UI page"""
+        response = self.client.get("/ui")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(b"Products Admin UI", response.data)
+
     def test_purchase_product_successful(self):
         """It should successfully Purchase a Product with sufficient inventory"""
         test_product = ProductFactory(available=True, inventory=10)

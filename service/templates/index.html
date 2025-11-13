@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Products Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+</head>
+<body class="p-4">
+  <div class="container">
+    <h2 class="mb-4">Products Admin UI</h2>
+    
+    <!-- Main Instructions -->
+    <div class="alert alert-primary" role="alert">
+      <h5>How This Works:</h5>
+      <p class="mb-2">
+        <strong>All changes are automatically reflected in the Products List table at the bottom of this page.</strong>
+      </p>
+      <ul class="mb-0">
+        <li><strong>Create a product</strong> → It appears in the table immediately</li>
+        <li><strong>Update a product</strong> → Changes show in the table immediately</li>
+        <li><strong>Delete a product</strong> → It disappears from the table immediately</li>
+        <li><strong>Search/Filter</strong> → Table shows only matching products</li>
+      </ul>
+    </div>
+    
+    <!-- Flash Messages -->
+    <div id="flash-message" class="alert" style="display:none;" role="alert"></div>
+
+    <!-- CREATE PRODUCT -->
+    <div class="card mb-4">
+      <div class="card-header"><h5>Create Product</h5></div>
+      <div class="card-body">
+        <div class="alert alert-info" role="alert">
+          <strong>Instructions:</strong>
+          <ol class="mb-0">
+            <li>Fill in all required fields marked with *</li>
+            <li>Click "Create Product"</li>
+            <li><strong>Result:</strong> Your new product will appear in the Products List table at the bottom</li>
+          </ol>
+        </div>
+        
+        <form id="create-form">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="create-id" class="form-label">Product ID *</label>
+              <input id="create-id" class="form-control" placeholder="SKU-000001" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="create-name" class="form-label">Name *</label>
+              <input id="create-name" class="form-control" placeholder="Product Name" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="create-price" class="form-label">Price *</label>
+              <input id="create-price" class="form-control" type="number" step="0.01" min="0" placeholder="29.99" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="create-description" class="form-label">Description</label>
+              <textarea id="create-description" class="form-control" rows="2" placeholder="Product description"></textarea>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="create-image-url" class="form-label">Image URL</label>
+              <input id="create-image-url" class="form-control" placeholder="https://example.com/image.jpg" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="create-inventory" class="form-label">Inventory *</label>
+              <input id="create-inventory" class="form-control" type="number" min="0" value="0" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="form-check mt-4">
+                <input id="create-available" class="form-check-input" type="checkbox" checked />
+                <label class="form-check-label" for="create-available">Available</label>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Create Product</button>
+          <button type="reset" class="btn btn-secondary">Clear Form</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- SEARCH / FILTER PRODUCTS -->
+    <div class="card mb-4">
+      <div class="card-header"><h5>Search / Filter Products</h5></div>
+      <div class="card-body">
+        <div class="alert alert-info" role="alert">
+          <strong>Instructions:</strong>
+          <ul class="mb-0">
+            <li><strong>Search with Filters:</strong> Enter any filter criteria and click "Search with Filters" - the Products List table will show only matching products</li>
+            <li><strong>List All Products:</strong> Click "List All Products" to display every product in the database in the table below</li>
+            <li><strong>Clear Filters:</strong> Click "Clear Filters" to empty all search fields</li>
+          </ul>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-id">ID</label>
+            <input id="search-id" class="form-control" placeholder="SKU-000001" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-name">Name</label>
+            <input id="search-name" class="form-control" placeholder="Product Name" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-description">Description</label>
+            <input id="search-description" class="form-control" placeholder="Description" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-available">Availability</label>
+            <select id="search-available" class="form-select">
+              <option value="">All</option>
+              <option value="true">Available</option>
+              <option value="false">Not Available</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-price">Exact Price</label>
+            <input id="search-price" class="form-control" type="number" step="0.01" placeholder="29.99" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-min-price">Min Price</label>
+            <input id="search-min-price" class="form-control" type="number" step="0.01" placeholder="10.00" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-max-price">Max Price</label>
+            <input id="search-max-price" class="form-control" type="number" step="0.01" placeholder="100.00" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label" for="search-image-url">Image URL</label>
+            <input id="search-image-url" class="form-control" placeholder="Image URL" />
+          </div>
+        </div>
+        <button id="search-btn" class="btn btn-secondary">Search with Filters</button>
+        <button id="list-all-btn" class="btn btn-info">List All Products</button>
+        <button id="clear-search-btn" class="btn btn-outline-secondary">Clear Filters</button>
+      </div>
+    </div>
+
+    <!-- READ / DELETE PRODUCT -->
+    <div class="card mb-4">
+      <div class="card-header"><h5>Read / Delete Product</h5></div>
+      <div class="card-body">
+        <div class="alert alert-info" role="alert">
+          <strong>Instructions:</strong>
+          <ul class="mb-0">
+            <li><strong>Read Product:</strong> Enter a Product ID and click "Read Product" to view its details below (read-only, does not update the table)</li>
+            <li><strong>Delete Product:</strong> Enter a Product ID and click "Delete Product" to remove it - the product will disappear from the Products List table at the bottom</li>
+          </ul>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="product-id-read" class="form-label">Product ID</label>
+            <input id="product-id-read" class="form-control" placeholder="Enter ID to Read or Delete" />
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <button id="read-btn" class="btn btn-info me-2">Read Product</button>
+            <button id="delete-btn" class="btn btn-danger">Delete Product</button>
+          </div>
+        </div>
+        
+        <!-- Display Read Product Details (Read-only) -->
+        <div id="read-product-details" style="display: none;">
+          <hr>
+          <h6>Product Details:</h6>
+          <div class="row">
+            <div class="col-md-3">
+              <strong>ID:</strong>
+              <p id="display-id" class="text-muted"></p>
+            </div>
+            <div class="col-md-3">
+              <strong>Name:</strong>
+              <p id="display-name" class="text-muted"></p>
+            </div>
+            <div class="col-md-3">
+              <strong>Price:</strong>
+              <p id="display-price" class="text-muted"></p>
+            </div>
+            <div class="col-md-3">
+              <strong>Inventory:</strong>
+              <p id="display-inventory" class="text-muted"></p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <strong>Description:</strong>
+              <p id="display-description" class="text-muted"></p>
+            </div>
+            <div class="col-md-3">
+              <strong>Image URL:</strong>
+              <p id="display-image-url" class="text-muted"></p>
+            </div>
+            <div class="col-md-3">
+              <strong>Available:</strong>
+              <p id="display-available" class="text-muted"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE PRODUCT -->
+    <div class="card mb-4">
+      <div class="card-header"><h5>Update Product</h5></div>
+      <div class="card-body">
+        <div class="alert alert-info" role="alert">
+          <strong>Instructions:</strong>
+          <ol class="mb-0">
+            <li><strong>Product ID cannot be changed</strong> - it uniquely identifies the product</li>
+            <li>Enter the Product ID, then click "Load Product to Edit" to fill the form with current data</li>
+            <li>Modify any editable fields (Name, Price, Description, Image URL, Inventory, Available)</li>
+            <li>Click "Update Product" to save your changes</li>
+            <li><strong>Result:</strong> The updated product information will show in the Products List table at the bottom</li>
+          </ol>
+        </div>
+        
+        <form id="update-form">
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <label for="product-id-update" class="form-label">
+                Product ID * 
+                <span class="badge bg-secondary">READ ONLY - Cannot be changed</span>
+              </label>
+              <input id="product-id-update" class="form-control" placeholder="Enter ID of product to update" required />
+              <small class="form-text text-muted">This ID identifies the product and cannot be modified after creation. Enter it, then click "Load Product to Edit"</small>
+            </div>
+          </div>
+          
+          <button type="button" id="load-to-update-btn" class="btn btn-secondary mb-3">
+            Load Product to Edit
+          </button>
+          
+          <hr>
+          
+          <h6>Editable Fields:</h6>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="update-name" class="form-label">Name *</label>
+              <input id="update-name" class="form-control" placeholder="Product Name" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="update-price" class="form-label">Price *</label>
+              <input id="update-price" class="form-control" type="number" step="0.01" min="0" placeholder="29.99" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="update-inventory" class="form-label">Inventory *</label>
+              <input id="update-inventory" class="form-control" type="number" min="0" placeholder="10" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="update-description" class="form-label">Description</label>
+              <textarea id="update-description" class="form-control" rows="2" placeholder="Product description (optional)"></textarea>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="update-image-url" class="form-label">Image URL</label>
+              <input id="update-image-url" class="form-control" placeholder="https://example.com/image.jpg (optional)" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Availability</label>
+              <div class="form-check">
+                <input id="update-available" class="form-check-input" type="checkbox" />
+                <label class="form-check-label" for="update-available">
+                  Product is available for purchase
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-warning btn-lg">
+            Update Product
+          </button>
+          <small class="text-muted ms-3">* Required fields</small>
+        </form>
+      </div>
+    </div>
+
+    <!-- RESULTS TABLE -->
+    <div class="card">
+      <div class="card-header">
+        <h5>Products List (<span id="result-count">0</span> products)</h5>
+        <small class="text-white">This table automatically updates when you create, update, or delete products</small>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="results" class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Image URL</th>
+                <th>Available</th>
+                <th>Inventory</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="8" class="text-center text-muted">No products loaded. Click "List All Products" to load.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>window.BASE_URL="{{ base_url if base_url else '' }}";</script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
