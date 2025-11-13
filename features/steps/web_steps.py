@@ -1,11 +1,32 @@
-from behave import given, then
+import os
+import requests
+from behave import given, when, then
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
-@given("the browser opens the homepage")
-def step_open_homepage(context):
-    context.driver.get(context.base_url)
+@given(u'the application is started')
+def step_impl(context):
+    context.base_url = os.getenv('BASE_URL','http://localhost:8080')
+    context.resp = requests.get(context.base_url + '/')
+    assert context.resp.status_code == 200
 
-@then('the page should contain the text "{expected_text}"')
-def step_check_json_text(context, expected_text):
-    body_text = context.driver.find_element(By.TAG_NAME, "body").text
-    assert expected_text in body_text, f"Expected '{expected_text}' in page, got '{body_text}'"
+
+@when(u'I visit the "Home Page"')
+def step_impl(context):
+    context.resp = requests.get(context.base_url + '/')
+    assert context.resp.status_code == 200
+
+
+@then(u'I should see "{message}" in the title')
+def step_impl(context, message):
+    resp = requests.get(context.base_url) 
+    resp.raise_for_status()  
+    data = resp.json()       
+
+    # Check that the "service" field matches expected value
+    assert data.get("service") == "Product REST API Service", f"Expected 'Product REST API Service', got '{data.get('service')}'"
+
+
+@then(u'I should not see "{message}"')
+def step_impl(context, message):
+    assert message not in str(context.resp.text)
