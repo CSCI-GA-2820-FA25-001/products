@@ -17,9 +17,6 @@ function showMessage(message, type = "success") {
     flashDiv.className = `alert alert-${type}`;
     flashDiv.textContent = message;
     flashDiv.style.display = "block";
-    setTimeout(() => {
-        flashDiv.style.display = "none";
-    }, 3000);
 }
 
 // Render table rows
@@ -54,13 +51,17 @@ function renderRows(items) {
 }
 
 // Load list with optional query parameters
-async function loadList(q = {}) {
+// showMsg: 是否显示加载消息（默认 true）
+async function loadList(q = {}, showMsg = true) {
     try {
         const params = new URLSearchParams(q);
         const url = params.toString() ? api(`/products?${params.toString()}`) : api("/products");
         const data = await fetchJSON(url);
         renderRows(data);
-        showMessage(`Loaded ${data.length} product(s)`, "info");
+        // 只在 showMsg 为 true 时显示消息
+        if (showMsg) {
+            showMessage(`Loaded ${data.length} product(s)`, "info");
+        }
     } catch (error) {
         showMessage(`Error loading products: ${error.message}`, "danger");
     }
@@ -85,8 +86,8 @@ document.getElementById("create-form").addEventListener("submit", async (e) => {
         document.getElementById("create-form").reset();
         document.getElementById("create-available").checked = true;
 
-        // Auto-refresh the product list
-        await loadList();
+        // Auto-refresh the product list (不显示加载消息)
+        await loadList({}, false);
     } catch (error) {
         showMessage(`Error creating product: ${error.message}`, "danger");
     }
@@ -191,8 +192,8 @@ document.getElementById("update-form").addEventListener("submit", async (e) => {
         idField.style.cursor = "text";
         idField.classList.remove("bg-light");
 
-        // Auto-refresh the product list
-        await loadList();
+        // Auto-refresh the product list (不显示加载消息)
+        await loadList({}, false);
     } catch (error) {
         showMessage(`Error updating product: ${error.message}`, "danger");
     }
@@ -245,8 +246,8 @@ document.getElementById("delete-btn").addEventListener("click", async () => {
         document.getElementById("product-id-read").value = "";
         document.getElementById("read-product-details").style.display = "none";
 
-        // Auto-refresh the product list
-        await loadList();
+        // Auto-refresh the product list (不显示加载消息)
+        await loadList({}, false);
     } catch (error) {
         showMessage(`Error deleting product: ${error.message}`, "danger");
     }
