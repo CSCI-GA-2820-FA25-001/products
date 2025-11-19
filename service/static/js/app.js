@@ -61,19 +61,36 @@ function renderRows(items) {
 }
 
 // Load list with optional query parameters
-async function loadList(q = {}, showMsg = true) {
+async function loadList(q = {}, showMsg = true, fillSearchForm = false) {
     try {
         const params = new URLSearchParams(q);
         const url = params.toString() ? api(`/products?${params.toString()}`) : api("/products");
         const data = await fetchJSON(url);
         renderRows(data);
+        
         if (showMsg) {
             showMessage(`Loaded ${data.length} product(s)`, "info");
+        }
+        
+        if (fillSearchForm && data.length === 1) {
+            fillSearchFormWithProduct(data[0]);
         }
     } catch (error) {
         showMessage(`Error loading products: ${error.message}`, "danger");
     }
 }
+function fillSearchFormWithProduct(product) {
+    document.getElementById("search-id").value = product.id || "";
+    document.getElementById("search-name").value = product.name || "";
+    document.getElementById("search-description").value = product.description || "";
+    document.getElementById("search-price").value = product.price || "";
+    document.getElementById("search-image-url").value = product.image_url || "";
+    document.getElementById("search-available").value = product.available ? "true" : (product.available === false ? "false" : "");
+    document.getElementById("search-min-price").value = "";
+    document.getElementById("search-max-price").value = "";
+}
+
+
 
 // CREATE PRODUCT
 document.getElementById("create-form").addEventListener("submit", async (e) => {
@@ -101,6 +118,7 @@ document.getElementById("create-form").addEventListener("submit", async (e) => {
 });
 
 // SEARCH WITH FILTERS
+// SEARCH WITH FILTERS
 document.getElementById("search-btn").addEventListener("click", async () => {
     const id = document.getElementById("search-id").value.trim();
     const name = document.getElementById("search-name").value.trim();
@@ -121,7 +139,7 @@ document.getElementById("search-btn").addEventListener("click", async () => {
     if (maxPrice) q.max_price = maxPrice;
     if (imageUrl) q.image_url = imageUrl;
 
-    await loadList(q);
+    await loadList(q, true, true);  // fill search form if exactly one result
 });
 
 // LIST ALL PRODUCTS
