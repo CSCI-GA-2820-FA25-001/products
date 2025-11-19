@@ -27,3 +27,27 @@ Scenario: Delete a Product by ID
     And I should see "wood" in the results
     And I should see "bike" in the results
     And I should not see "car" in the results
+
+Scenario: Try to Delete a Non-existent Product
+    When I visit the "Home Page"
+    And I set the "Product ID" to "99999"
+    And I press the "Delete Product" button
+    Then I should see the message "Product with id '99999' was not found"
+
+Scenario: Read a Product by ID
+    When I visit the "Home Page"
+    And I set the "Product ID" to "00001"
+    And I press the "Read Product" button
+    Then I should see the message "Product "candy" loaded successfully!"
+    And I should see "00001" in the product details
+    And I should see "candy" in the product details
+    And I should see "$4.2" in the product details
+    And I should see "tasty" in the product details
+    And I should see "No" in the availability status
+
+Scenario: Try to Read a Non-existent Product
+    When I visit the "Home Page"
+    And I set the "Product ID" to "99999"
+    And I press the "Read Product" button
+    Then I should see the message "Product '99999' not found"
+    And the product details should not be visible

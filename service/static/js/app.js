@@ -3,7 +3,17 @@ async function fetchJSON(url, opts = {}) {
     const resp = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
     if (!resp.ok) {
         const text = await resp.text();
-        throw new Error(`HTTP ${resp.status}: ${text}`);
+        
+        try {
+            const errorData = JSON.parse(text);
+            const errorMsg = errorData.message || errorData.error || text;
+            throw new Error(errorMsg);
+        } catch (e) {
+            if (e instanceof SyntaxError) {
+                throw new Error(text || `HTTP ${resp.status}`);
+            }
+            throw e;
+        }
     }
     return resp.status === 204 ? null : resp.json();
 }
@@ -154,8 +164,15 @@ document.getElementById("read-btn").addEventListener("click", async () => {
 
         showMessage(`Product "${p.name}" loaded successfully!`, "info");
     } catch (error) {
-        document.getElementById("read-product-details").style.display = "none";
-        showMessage(`Error reading product: ${error.message}`, "danger");
+        let errorMsg = error.message;
+        if (errorMsg.includes("404 Not Found: Product with id")) {
+            const match = errorMsg.match(/id '([^']+)'/);
+            const productId = match ? match[1] : id;
+            errorMsg = `Product '${productId}' not found`;
+        } else if (errorMsg.includes("404")) {
+            errorMsg = `Product '${id}' not found`;
+        }
+        showMessage(errorMsg, "danger");
     }
 });
 
@@ -233,22 +250,33 @@ document.getElementById("delete-btn").addEventListener("click", async () => {
         return;
     }
 
-    if (!confirm(`Are you sure you want to delete product ${id}?`)) {
-        return;
-    }
-
     try {
-        await fetch(api(`/products/${id}`), { method: "DELETE" });
+        await fetchJSON(api(`/products/${id}`));
+        
+        if (!confirm(`Are you sure you want to delete product ${id}?`)) {
+            return;
+        }
+        
+        await fetchJSON(api(`/products/${id}`), { method: "DELETE" });
         showMessage(`Product ${id} deleted successfully!`, "success");
         document.getElementById("product-id-read").value = "";
         document.getElementById("read-product-details").style.display = "none";
 
         await loadList({}, false);
     } catch (error) {
-        showMessage(`Error deleting product: ${error.message}`, "danger");
+        let errorMsg = error.message;
+        
+        if (errorMsg.includes("404 Not Found: Product with id")) {
+            const match = errorMsg.match(/id '([^']+)'/);
+            const productId = match ? match[1] : id;
+            errorMsg = `Product with id '${productId}' was not found`;
+        } else if (errorMsg.includes("404")) {
+            errorMsg = `Product with id '${id}' was not found`;
+        }
+        
+        showMessage(errorMsg, "danger");
     }
 });
-
 // Helper function to load product into edit form from table
 window.loadProductToEdit = async function (id) {
     document.getElementById("product-id-update").value = id;
