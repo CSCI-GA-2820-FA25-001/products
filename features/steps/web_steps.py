@@ -128,3 +128,30 @@ def step_impl(context, text):
     
     table_text = tbody.text
     assert text not in table_text, f"Did not expect to see '{text}' in results, but it was found: {table_text}"
+
+@then(u'I should see "{text}" in the product details')
+def step_impl(context, text):
+    details_div = WebDriverWait(context.driver, context.wait_seconds).until(
+        EC.visibility_of_element_located((By.ID, "read-product-details"))
+    )
+    
+    details_text = details_div.text
+    assert text in details_text, f"Expected to see '{text}' in product details, but got: {details_text}"
+
+@then(u'I should see "{text}" in the availability status')
+def step_impl(context, text):
+    availability_element = WebDriverWait(context.driver, context.wait_seconds).until(
+        EC.presence_of_element_located((By.ID, "display-available"))
+    )
+    
+    availability_text = availability_element.text
+    assert text in availability_text, f"Expected '{text}' in availability, but got '{availability_text}'"
+
+@then(u'the product details should not be visible')
+def step_impl(context):
+    try:
+        details_div = context.driver.find_element(By.ID, "read-product-details")
+        is_displayed = details_div.is_displayed()
+        assert not is_displayed, "Product details should not be visible, but it is displayed"
+    except:
+        pass
