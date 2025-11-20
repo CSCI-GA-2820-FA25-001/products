@@ -51,3 +51,11 @@ Scenario: Try to Read a Non-existent Product
     And I press the "Read Product" button
     Then I should see the message "Product '99999' not found"
     And the product details should not be visible
+
+Scenario: Display the first page of products
+    When I visit the "Home Page"
+    When I press the "List All Products" button
+    Then I should see a table of products
+    And I should see the column headers:
+        | ID | Name | Price | Available | Inventory | Actions |
+    And I should see 4 products in the table
