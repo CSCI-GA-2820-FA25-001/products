@@ -46,9 +46,6 @@ def step_impl(context, element_name, text_value):
         "create price": "create-price",
         "create inventory": "create-inventory",
         "create image url": "create-image-url",
-        "search name": "search-name",           
-        "search description": "search-description",  
-        "search price": "search-price",        
     }
     
     element_key = element_name.lower()
@@ -271,18 +268,3 @@ def step_impl(context):
         assert (
             header in actual_headers
         ), f"Expected header '{header}' not found in {actual_headers}"
-    
-@when(u'I select "{value}" in the "{dropdown_name}" dropdown')
-def step_impl(context, value, dropdown_name):
-    """Select a value from a dropdown"""
-    from selenium.webdriver.support.ui import Select
-    
-    dropdown_mapping = {
-        "search available": "search-available"
-    }
-    
-    dropdown_id = dropdown_mapping[dropdown_name.lower()]
-    dropdown = context.driver.find_element(By.ID, dropdown_id)
-    
-    select = Select(dropdown)
-    select.select_by_value(value)
