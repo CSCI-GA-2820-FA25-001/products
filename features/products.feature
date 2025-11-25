@@ -86,6 +86,7 @@ Scenario: Update a Product Successfully
     When I press the "List All Products" button
     Then I should see "sports car" in the results
     And I should see "$15.99" in the results
+
 Scenario: Search for Products by Name
     When I visit the "Home Page"
     And I set the "Search Name" to "car"
