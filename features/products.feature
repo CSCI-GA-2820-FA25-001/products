@@ -73,3 +73,11 @@ Scenario: Display the first page of products
     And I should see the column headers:
         | ID | Name | Price | Available | Inventory | Actions |
     And I should see 4 products in the table
+
+Scenario: Search for Products by Name
+    When I visit the "Home Page"
+    And I set the "Search Name" to "car"
+    And I press the "Search with Filters" button
+    Then I should see the message "Loaded 1 product(s)"
+    And I should see "car" in the results
+    And I should not see "candy" in the results
