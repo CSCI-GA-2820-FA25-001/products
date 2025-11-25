@@ -24,21 +24,32 @@ def step_impl(context):
     )
 
 
-@when('I set the "{element_name}" to "{text_value}"')
+@when(u'I set the "{element_name}" to "{text_value}"')
 def step_impl(context, element_name, text_value):
     """set the value of an input field"""
-    element_id = "product-id-read"
-
+    element_mapping = {
+        "product id": "product-id-read",
+        "create id": "create-id",
+        "create name": "create-name",
+        "create description": "create-description",
+        "create price": "create-price",
+        "create inventory": "create-inventory",
+        "create image url": "create-image-url",
+    }
+    
+    element_key = element_name.lower()
+    element_id = element_mapping.get(element_key)
+    
+    if not element_id:
+        raise ValueError(f"Unknown element: {element_name}")
+    
     element = WebDriverWait(context.driver, context.wait_seconds).until(
         EC.presence_of_element_located((By.ID, element_id))
     )
-
     # scroll to the element
-    context.driver.execute_script(
-        "arguments[0].scrollIntoView({block: 'center'});", element
-    )
+    context.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
     time.sleep(0.3)
-
+    
     element.clear()
     element.send_keys(text_value)
 
@@ -52,6 +63,7 @@ def step_impl(context, button_name):
         "search with filters": "search-btn",
         "clear filters": "clear-search-btn",
         "read product": "read-btn",
+        "create product": "create-btn",
     }
 
     button_key = button_name.lower()
