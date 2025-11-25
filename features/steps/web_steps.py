@@ -46,6 +46,9 @@ def step_impl(context, element_name, text_value):
         "create price": "create-price",
         "create inventory": "create-inventory",
         "create image url": "create-image-url",
+        "update id": "product-id-update",
+        "update name": "update-name",
+        "update price": "update-price",
         "search name": "search-name",           
         "search description": "search-description",  
         "search price": "search-price",        
@@ -78,6 +81,8 @@ def step_impl(context, button_name):
         "clear filters": "clear-search-btn",
         "read product": "read-btn",
         "create product": "create-btn",
+        "load product to edit": "load-to-update-btn",
+        "update product": "update-btn",
     }
 
     button_key = button_name.lower()
