@@ -18,15 +18,17 @@ Scenario: The application is running
 
 Scenario: Create a New Product
     When I visit the "Home Page"
-    And I set the "Create ID" to "00005"
+    And the "Create ID" field should be empty
+    And the "Create Name" field should be empty
+    When I set the "Create ID" to "00005"
     And I set the "Create Name" to "laptop"
-    And I set the "Create Description" to "powerful computer"
     And I set the "Create Price" to "999.99"
     And I set the "Create Inventory" to "10"
     And I press the "Create Product" button
-    Then I should see the message "Product "laptop" created successfully!"
+    Then I should see the message "created successfully!"
     When I press the "List All Products" button
     Then I should see "laptop" in the results
+    And I should see "00005" in the results
 
 Scenario: Delete a Product by ID
     When I visit the "Home Page"

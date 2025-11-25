@@ -23,6 +23,17 @@ def step_impl(context):
         EC.presence_of_element_located((By.TAG_NAME, "h2"))
     )
 
+@when(u'the "{element_name}" field should be empty')
+def step_impl(context, element_name):
+    """verify a field is empty"""
+    element_mapping = {
+        "create id": "create-id",
+        "create name": "create-name",
+    }
+    
+    element_id = element_mapping[element_name.lower()]
+    element = context.driver.find_element(By.ID, element_id)
+    assert element.get_attribute("value") == "", f"Expected {element_name} to be empty, but got '{element.get_attribute('value')}'"
 
 @when(u'I set the "{element_name}" to "{text_value}"')
 def step_impl(context, element_name, text_value):
