@@ -73,3 +73,16 @@ Scenario: Display the first page of products
     And I should see the column headers:
         | ID | Name | Price | Available | Inventory | Actions |
     And I should see 4 products in the table
+
+Scenario: Update a Product Successfully
+    When I visit the "Home Page"
+    And I set the "Update ID" to "00002"
+    And I press the "Load Product to Edit" button
+    Then I should see the message "loaded into form for editing!"
+    When I set the "Update Name" to "sports car"
+    And I set the "Update Price" to "15.99"
+    And I press the "Update Product" button
+    Then I should see the message "sports car" updated successfully!"
+    When I press the "List All Products" button
+    Then I should see "sports car" in the results
+    And I should see "$15.99" in the results
