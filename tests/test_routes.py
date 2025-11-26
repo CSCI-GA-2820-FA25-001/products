@@ -641,3 +641,28 @@ class TestProductService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         data = resp.get_json()
         self.assertIn("Quantity is required", data.get("message", ""))
+
+    def test_purchase_product_makes_unavailable_when_inventory_zero(self):
+        """It should set available to False when inventory reaches zero after purchase"""
+        test_product = ProductFactory(available=True, inventory=3)
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        product_id = response.get_json()["id"]
+
+        purchase_data = {"quantity": 3}
+        response = self.client.post(
+            f"{BASE_URL}/{product_id}/purchase",
+            json=purchase_data,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["inventory"], 0)
+        self.assertFalse(updated_product["available"])
+
+        response = self.client.get(f"{BASE_URL}/{product_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        product = response.get_json()
+        self.assertEqual(product["inventory"], 0)
+        self.assertFalse(product["available"])

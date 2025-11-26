@@ -348,6 +348,8 @@ def purchase_product(product_id):
 
     # Update inventory
     product.inventory -= quantity
+    if product.inventory == 0:
+        product.available = False
     product.update()
 
     app.logger.info(

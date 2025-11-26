@@ -295,6 +295,54 @@ document.getElementById("delete-btn").addEventListener("click", async () => {
         showMessage(errorMsg, "danger");
     }
 });
+
+// PURCHASE PRODUCT (Action)
+document.getElementById("purchase-btn").addEventListener("click", async () => {
+    const id = document.getElementById("purchase-id").value.trim();
+    const quantityStr = document.getElementById("purchase-quantity").value.trim();
+
+    if (!id) {
+        showMessage("Please enter a Product ID", "warning");
+        return;
+    }
+
+    const quantity = parseInt(quantityStr, 10);
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+        showMessage("Quantity must be a positive integer", "warning");
+        return;
+    }
+
+    try {
+        const payload = { quantity: quantity };
+        const product = await fetchJSON(
+            api(`/products/${id}/purchase`),
+            {
+                method: "POST",
+                body: JSON.stringify(payload),
+            }
+        );
+
+        showMessage(
+            `Successfully purchased ${quantity} unit(s) of ${product.name}`,
+            "success"
+        );
+
+        await loadList({}, false);
+    } catch (error) {
+        let errorMsg = error.message || "Error purchasing product";
+
+        if (errorMsg.includes("Insufficient inventory")) {
+            errorMsg = "Insufficient inventory";
+        } else if (errorMsg.includes("404 Not Found: Product with id")) {
+            const match = errorMsg.match(/id '([^']+)'/);
+            const productId = match ? match[1] : id;
+            errorMsg = `Product with id '${productId}' was not found`;
+        }
+
+        showMessage(errorMsg, "danger");
+    }
+});
+
 // Helper function to load product into edit form from table
 window.loadProductToEdit = async function (id) {
     document.getElementById("product-id-update").value = id;

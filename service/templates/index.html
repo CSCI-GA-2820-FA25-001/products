@@ -237,6 +237,37 @@
       </div>
     </div>
 
+    <!-- PURCHASE PRODUCT (ACTION) -->
+    <div class="card mb-4">
+      <div class="card-header"><h5>Purchase Product</h5></div>
+      <div class="card-body">
+        <div class="alert alert-info" role="alert">
+          <strong>Instructions:</strong>
+          <ol class="mb-0">
+            <li>Enter the <strong>Product ID</strong> of an existing product.</li>
+            <li>Enter the <strong>Quantity</strong> to purchase (must be a positive integer and ≤ inventory).</li>
+            <li>Click "<strong>Purchase Product</strong>".</li>
+            <li><strong>Result:</strong> Inventory will be reduced and the Products List table will reflect the updated inventory.</li>
+          </ol>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="purchase-id" class="form-label">Product ID</label>
+            <input id="purchase-id" class="form-control" placeholder="Enter Product ID to purchase" />
+          </div>
+          <div class="col-md-6">
+            <label for="purchase-quantity" class="form-label">Quantity</label>
+            <input id="purchase-quantity" class="form-control" type="number" min="1" value="1" />
+          </div>
+        </div>
+
+        <button id="purchase-btn" class="btn btn-success">
+          Purchase Product
+        </button>
+      </div>
+    </div>
+
     <!-- UPDATE PRODUCT -->
     <div class="card mb-4">
       <div class="card-header"><h5>Update Product</h5></div>

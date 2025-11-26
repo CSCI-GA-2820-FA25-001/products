@@ -94,3 +94,32 @@ Scenario: Search for Products by Name
     Then I should see the message "Loaded 1 product(s)"
     And I should see "car" in the results
     And I should not see "candy" in the results
+
+Scenario: Successfully purchase a product
+    When I visit the "Home Page"
+    And I set the "Purchase ID" to "00002"
+    And I set the "Purchase Quantity" to "2"
+    And I press the "Purchase Product" button
+    Then I should see the message "Successfully purchased 2 unit(s) of car"
+    When I press the "List All Products" button
+    Then I should see "car" in the results
+    And I should see "3" in the results
+
+Scenario: Purchase fails due to insufficient inventory
+    When I visit the "Home Page"
+    And I set the "Purchase ID" to "00003"
+    And I set the "Purchase Quantity" to "10"
+    And I press the "Purchase Product" button
+    Then I should see the message "Insufficient inventory"
+
+Scenario: Purchasing all remaining inventory makes product unavailable
+    When I visit the "Home Page"
+    And I set the "Purchase ID" to "00003"
+    And I set the "Purchase Quantity" to "3"
+    And I press the "Purchase Product" button
+    Then I should see the message "Successfully purchased 3 unit(s) of wood"
+    When I set the "Product ID" to "00003"
+    And I press the "Read Product" button
+    Then I should see "No" in the availability status
+
+
