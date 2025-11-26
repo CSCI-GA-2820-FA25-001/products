@@ -23,19 +23,23 @@ def step_impl(context):
         EC.presence_of_element_located((By.TAG_NAME, "h2"))
     )
 
-@when(u'the "{element_name}" field should be empty')
+
+@when('the "{element_name}" field should be empty')
 def step_impl(context, element_name):
     """verify a field is empty"""
     element_mapping = {
         "create id": "create-id",
         "create name": "create-name",
     }
-    
+
     element_id = element_mapping[element_name.lower()]
     element = context.driver.find_element(By.ID, element_id)
-    assert element.get_attribute("value") == "", f"Expected {element_name} to be empty, but got '{element.get_attribute('value')}'"
+    assert (
+        element.get_attribute("value") == ""
+    ), f"Expected {element_name} to be empty, but got '{element.get_attribute('value')}'"
 
-@when(u'I set the "{element_name}" to "{text_value}"')
+
+@when('I set the "{element_name}" to "{text_value}"')
 def step_impl(context, element_name, text_value):
     """set the value of an input field"""
     element_mapping = {
@@ -49,24 +53,28 @@ def step_impl(context, element_name, text_value):
         "update id": "product-id-update",
         "update name": "update-name",
         "update price": "update-price",
-        "search name": "search-name",           
-        "search description": "search-description",  
-        "search price": "search-price",        
+        "search name": "search-name",
+        "search description": "search-description",
+        "search price": "search-price",
+        "purchase id": "purchase-id",
+        "purchase quantity": "purchase-quantity",
     }
-    
+
     element_key = element_name.lower()
     element_id = element_mapping.get(element_key)
-    
+
     if not element_id:
         raise ValueError(f"Unknown element: {element_name}")
-    
+
     element = WebDriverWait(context.driver, context.wait_seconds).until(
         EC.presence_of_element_located((By.ID, element_id))
     )
     # scroll to the element
-    context.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+    context.driver.execute_script(
+        "arguments[0].scrollIntoView({block: 'center'});", element
+    )
     time.sleep(0.3)
-    
+
     element.clear()
     element.send_keys(text_value)
 
@@ -83,6 +91,7 @@ def step_impl(context, button_name):
         "create product": "create-btn",
         "load product to edit": "load-to-update-btn",
         "update product": "update-btn",
+        "purchase product": "purchase-btn",
     }
 
     button_key = button_name.lower()
@@ -276,18 +285,17 @@ def step_impl(context):
         assert (
             header in actual_headers
         ), f"Expected header '{header}' not found in {actual_headers}"
-    
-@when(u'I select "{value}" in the "{dropdown_name}" dropdown')
+
+
+@when('I select "{value}" in the "{dropdown_name}" dropdown')
 def step_impl(context, value, dropdown_name):
     """Select a value from a dropdown"""
     from selenium.webdriver.support.ui import Select
-    
-    dropdown_mapping = {
-        "search available": "search-available"
-    }
-    
+
+    dropdown_mapping = {"search available": "search-available"}
+
     dropdown_id = dropdown_mapping[dropdown_name.lower()]
     dropdown = context.driver.find_element(By.ID, dropdown_id)
-    
+
     select = Select(dropdown)
     select.select_by_value(value)
