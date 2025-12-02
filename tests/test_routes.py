@@ -666,3 +666,82 @@ class TestProductService(TestCase):
         product = response.get_json()
         self.assertEqual(product["inventory"], 0)
         self.assertFalse(product["available"])
+
+    # ----------------------------------------------------------
+    # NEW TESTS FOR UNCOVERED ABORT CASES
+    # ----------------------------------------------------------
+    def test_purchase_product_not_found(self):
+        """It should return 404 when purchasing a non-existent Product"""
+        purchase_data = {"quantity": 1}
+        response = self.client.post(
+            f"{BASE_URL}/non-existent-id/purchase",
+            json=purchase_data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data.get("message", ""))
+
+    def test_purchase_invalid_quantity_zero(self):
+        """It should return 400 when quantity is zero"""
+        prod = ProductFactory(available=True, inventory=5)
+        resp = self.client.post(BASE_URL, json=prod.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        pid = resp.get_json()["id"]
+
+        resp = self.client.post(
+            f"{BASE_URL}/{pid}/purchase",
+            json={"quantity": 0},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        data = resp.get_json()
+        self.assertIn("positive integer", data.get("message", ""))
+
+    def test_purchase_invalid_quantity_negative(self):
+        """It should return 400 when quantity is negative"""
+        prod = ProductFactory(available=True, inventory=5)
+        resp = self.client.post(BASE_URL, json=prod.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        pid = resp.get_json()["id"]
+
+        resp = self.client.post(
+            f"{BASE_URL}/{pid}/purchase",
+            json={"quantity": -3},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        data = resp.get_json()
+        self.assertIn("positive integer", data.get("message", ""))
+
+    def test_purchase_invalid_quantity_non_integer(self):
+        """It should return 400 when quantity is not an integer"""
+        prod = ProductFactory(available=True, inventory=5)
+        resp = self.client.post(BASE_URL, json=prod.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        pid = resp.get_json()["id"]
+
+        resp = self.client.post(
+            f"{BASE_URL}/{pid}/purchase",
+            json={"quantity": "three"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        data = resp.get_json()
+        self.assertIn("positive integer", data.get("message", ""))
+
+    def test_purchase_invalid_quantity_float(self):
+        """It should return 400 when quantity is a float"""
+        prod = ProductFactory(available=True, inventory=5)
+        resp = self.client.post(BASE_URL, json=prod.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        pid = resp.get_json()["id"]
+
+        resp = self.client.post(
+            f"{BASE_URL}/{pid}/purchase",
+            json={"quantity": 2.5},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        data = resp.get_json()
+        self.assertIn("positive integer", data.get("message", ""))
