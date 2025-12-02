@@ -21,18 +21,18 @@ Product Service with Swagger
 Paths:
 ------
 GET / - Displays service info
-GET /ui - Displays Admin UI
-GET /health - Health check endpoint
-GET /products - Returns a list of all Products
-GET /products/{id} - Returns the Product with a given id
-POST /products - Creates a new Product record in the database
-PUT /products/{id} - Updates a Product record in the database
-DELETE /products/{id} - Deletes a Product record in the database
-POST /products/{id}/purchase - Purchases a Product (reduces inventory)
+GET /api/ui - Displays Admin UI
+GET /api/health - Health check endpoint
+GET /api/products - Returns a list of all Products
+GET /api/products/{id} - Returns the Product with a given id
+POST /api/products - Creates a new Product record in the database
+PUT /api/products/{id} - Updates a Product record in the database
+DELETE /api/products/{id} - Deletes a Product record in the database
+POST /api/products/{id}/purchase - Purchases a Product (reduces inventory)
 """
 
 from decimal import Decimal, InvalidOperation
-from flask import request, render_template, jsonify
+from flask import request, render_template, jsonify, abort, url_for
 from flask import current_app as app  # Import Flask application
 from flask_restx import Api, Resource, fields, reqparse, inputs
 from werkzeug.exceptions import MethodNotAllowed
@@ -52,7 +52,7 @@ def index():
             service="Product REST API Service",
             version="1.0",
             description="This service manages products for an eCommerce platform.",
-            list_url=request.host_url.rstrip("/") + "/products",
+            list_url=request.host_url.rstrip("/") + "/api/products",
         ),
         status.HTTP_200_OK,
     )
@@ -69,6 +69,7 @@ api = Api(
     default="products",
     default_label="Product operations",
     doc="/apidocs",
+    prefix="/api",
 )
 
 
