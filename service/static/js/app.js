@@ -182,14 +182,17 @@ document.getElementById("read-btn").addEventListener("click", async () => {
 
         showMessage(`Product "${p.name}" loaded successfully!`, "info");
     } catch (error) {
-        let errorMsg = error.message;
-        if (errorMsg.includes("404 Not Found: Product with id")) {
+        let errorMsg = error.message || "";
+
+        if (errorMsg.includes("Product with id")) {
             const match = errorMsg.match(/id '([^']+)'/);
             const productId = match ? match[1] : id;
             errorMsg = `Product '${productId}' not found`;
-        } else if (errorMsg.includes("404")) {
+        }
+        else if (errorMsg.toLowerCase().includes("not found")) {
             errorMsg = `Product '${id}' not found`;
         }
+
         showMessage(errorMsg, "danger");
     }
 });
@@ -284,11 +287,11 @@ document.getElementById("delete-btn").addEventListener("click", async () => {
     } catch (error) {
         let errorMsg = error.message;
         
-        if (errorMsg.includes("404 Not Found: Product with id")) {
+        if (errorMsg.includes("Product with id")) {
             const match = errorMsg.match(/id '([^']+)'/);
             const productId = match ? match[1] : id;
             errorMsg = `Product with id '${productId}' was not found`;
-        } else if (errorMsg.includes("404")) {
+        } else if (errorMsg.toLowerCase().includes("not found")) {
             errorMsg = `Product with id '${id}' was not found`;
         }
         
