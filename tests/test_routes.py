@@ -605,7 +605,7 @@ class TestProductService(TestCase):
             "description": "x",
             "image_url": "http://x",
         }
-        resp = self.client.post("/api/products", json=bad_payload)
+        resp = self.client.post(BASE_URL, json=bad_payload)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         data = resp.get_json()
         self.assertIn("Bad Request", data.get("error", ""))
@@ -613,7 +613,7 @@ class TestProductService(TestCase):
 
     def test_method_not_allowed_405(self):
         """It should hit 405 handler for unsupported HTTP method"""
-        resp = self.client.patch("/api/products", json={})
+        resp = self.client.patch(BASE_URL, json={})
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         data = resp.get_json()
         self.assertEqual(data.get("error"), "Method not Allowed")

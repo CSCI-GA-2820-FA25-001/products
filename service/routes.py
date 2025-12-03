@@ -498,7 +498,7 @@ class PurchaseResource(Resource):
 @app.route("/ui")
 def ui_index():
     """Render the Admin UI page"""
-    return render_template("index.html", base_url="")
+    return render_template("index.html", base_url="/api")
 
 
 @app.route("/health")
