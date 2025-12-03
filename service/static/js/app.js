@@ -64,7 +64,7 @@ function renderRows(items) {
 async function loadList(q = {}, showMsg = true, fillSearchForm = false) {
     try {
         const params = new URLSearchParams(q);
-        const url = params.toString() ? api(`/products?${params.toString()}`) : api("/products");
+        const url = params.toString() ? api(`/api/products?${params.toString()}`) : api("/api/products");
         const data = await fetchJSON(url);
         renderRows(data);
         
@@ -106,7 +106,7 @@ document.getElementById("create-form").addEventListener("submit", async (e) => {
             available: document.getElementById("create-available").checked,
         };
 
-        await fetchJSON(api("/products"), { method: "POST", body: JSON.stringify(payload) });
+        await fetchJSON(api("/api/products"), { method: "POST", body: JSON.stringify(payload) });
         showMessage(`Product "${payload.name}" created successfully!`, "success");
         document.getElementById("create-form").reset();
         document.getElementById("create-available").checked = true;
@@ -166,7 +166,7 @@ document.getElementById("read-btn").addEventListener("click", async () => {
     }
 
     try {
-        const p = await fetchJSON(api(`/products/${id}`));
+        const p = await fetchJSON(api(`/api/products/${id}`));
 
         // Display product details in read-only view
         document.getElementById("display-id").textContent = p.id || "";
@@ -214,7 +214,7 @@ document.getElementById("update-form").addEventListener("submit", async (e) => {
             inventory: parseInt(document.getElementById("update-inventory").value, 10),
         };
 
-        await fetchJSON(api(`/products/${id}`), { method: "PUT", body: JSON.stringify(payload) });
+        await fetchJSON(api(`/api/products/${id}`), { method: "PUT", body: JSON.stringify(payload) });
         showMessage(`Product "${payload.name}" updated successfully!`, "success");
 
         // Reset the form and allow new ID entry
@@ -241,7 +241,7 @@ document.getElementById("load-to-update-btn").addEventListener("click", async ()
     }
 
     try {
-        const p = await fetchJSON(api(`/products/${id}`));
+        const p = await fetchJSON(api(`/api/products/${id}`));
         document.getElementById("update-name").value = p.name || "";
         document.getElementById("update-price").value = p.price || "";
         document.getElementById("update-description").value = p.description || "";
@@ -269,13 +269,13 @@ document.getElementById("delete-btn").addEventListener("click", async () => {
     }
 
     try {
-        await fetchJSON(api(`/products/${id}`));
+        await fetchJSON(api(`/api/products/${id}`));
         
         if (!confirm(`Are you sure you want to delete product ${id}?`)) {
             return;
         }
         
-        await fetchJSON(api(`/products/${id}`), { method: "DELETE" });
+        await fetchJSON(api(`/api/products/${id}`), { method: "DELETE" });
         showMessage(`Product ${id} deleted successfully!`, "success");
         document.getElementById("product-id-read").value = "";
         document.getElementById("read-product-details").style.display = "none";
@@ -315,7 +315,7 @@ document.getElementById("purchase-btn").addEventListener("click", async () => {
     try {
         const payload = { quantity: quantity };
         const product = await fetchJSON(
-            api(`/products/${id}/purchase`),
+            api(`/api/products/${id}/purchase`),
             {
                 method: "POST",
                 body: JSON.stringify(payload),
