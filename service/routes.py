@@ -35,8 +35,8 @@ from decimal import Decimal, InvalidOperation
 from flask import request, render_template, jsonify
 from flask import current_app as app  # Import Flask application
 from flask_restx import Api, Resource, fields, reqparse, inputs
-from werkzeug.exceptions import MethodNotAllowed
-from service.models import Product
+from werkzeug.exceptions import MethodNotAllowed, HTTPException
+from service.models import Product, DataValidationError
 from service.common import status  # HTTP Status Codes
 
 
@@ -80,6 +80,33 @@ api = Api(
 def method_not_allowed(error):
     """Handle 405 Method Not Allowed errors"""
     return {"error": "Method not Allowed", "status": 405, "message": str(error)}, 405
+
+
+######################################################################
+# Generic JSON error handlers for the API
+######################################################################
+@api.errorhandler(DataValidationError)
+def handle_data_validation(error):
+    """Return JSON for DataValidationError as HTTP 400"""
+    app.logger.error("Data validation error: %s", error)
+    return {
+        "status": status.HTTP_400_BAD_REQUEST,
+        "error": "Bad Request",
+        "message": str(error),
+    }, status.HTTP_400_BAD_REQUEST
+
+
+@api.errorhandler(HTTPException)
+def handle_http_exception(error):
+    """
+    Ensure all HTTPException (404, 415, etc.) return JSON instead of the default HTML error pages.
+    """
+    app.logger.error("HTTPException: %s", error)
+    return {
+        "status": error.code,
+        "error": error.name,
+        "message": error.description,
+    }, error.code
 
 
 ######################################################################
@@ -200,6 +227,21 @@ def abort(error_code: int, message: str):
     """Logs errors before aborting"""
     app.logger.error(message)
     api.abort(error_code, message)
+
+
+def check_content_type(content_type: str) -> None:
+    """Ensure that the request has the given Content-Type."""
+    ct = request.headers.get("Content-Type", None)
+    if not ct:
+        abort(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            f"Content-Type must be {content_type}",
+        )
+    if ct != content_type:
+        abort(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            f"Content-Type must be {content_type}",
+        )
 
 
 def _handle_price_filter(price):
@@ -327,6 +369,7 @@ class ProductResource(Resource):
         This endpoint will update a Product based on the body that is posted
         """
         app.logger.info("Request to Update a product with id [%s]", product_id)
+        check_content_type("application/json")
         product = Product.find(product_id)
         if not product:
             abort(
@@ -406,6 +449,7 @@ class ProductCollection(Resource):
         This endpoint will create a Product based on the data in the body that is posted
         """
         app.logger.info("Request to Create a Product...")
+        check_content_type("application/json")
         product = Product()
         app.logger.debug("Payload = %s", api.payload)
         product.deserialize(api.payload)
@@ -442,6 +486,7 @@ class PurchaseResource(Resource):
         This endpoint will reduce the inventory of a product based on the quantity purchased
         """
         app.logger.info("Request to Purchase product with id [%s]", product_id)
+        check_content_type("application/json")
 
         # Find the product
         product = Product.find(product_id)

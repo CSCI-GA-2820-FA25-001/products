@@ -1,4 +1,4 @@
-        ######################################################################
+######################################################################
 # Copyright 2016, 2024 John J. Rofrano. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ def step_impl(context):
     """Delete all products and load new ones"""
 
     # Get a list all of the products
-    rest_endpoint = f"{context.base_url}/products"
+    rest_endpoint = f"{context.base_url}/api/products"
     context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
     expect(context.resp.status_code).equal_to(HTTP_200_OK)
     # and delete them one by one
@@ -52,14 +52,13 @@ def step_impl(context):
     # load the database with new products
     for row in context.table:
         payload = {
-            "id": row["id"], 
+            "id": row["id"],
             "name": row["name"],
             "description": row["description"],
             "price": float(row["price"]),
             "image_url": row.get("image_url", ""),
             "available": row.get("available", "true").lower() == "true",
-            "inventory": int(row.get("inventory", "0")), 
+            "inventory": int(row.get("inventory", "0")),
         }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
-        
