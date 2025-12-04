@@ -109,19 +109,6 @@ def handle_http_exception(error):
     }, error.code
 
 
-@api.errorhandler(Exception)
-def handle_uncaught_exception(error):
-    """
-    Catch-all handler to prevent 500 HTML pages. Returns a JSON 500 instead.
-    """
-    app.logger.exception("Unhandled Exception: %s", error)
-    return {
-        "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-        "error": "Internal Server Error",
-        "message": "An unexpected error occurred. Please try again later.",
-    }, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
 ######################################################################
 # Define the models for Swagger documentation
 ######################################################################
