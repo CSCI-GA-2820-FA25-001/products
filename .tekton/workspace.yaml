@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  namespace: brandonsomoza-dev
+  name: pipeline-pvc
 spec:
   accessModes:
     - ReadWriteOnce
