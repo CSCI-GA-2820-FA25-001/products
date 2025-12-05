@@ -10,5 +10,3 @@ spec:
       storage: 1Gi
   storageClassName: gp3
   volumeMode: Filesystem
-status:
-  phase: Pending
