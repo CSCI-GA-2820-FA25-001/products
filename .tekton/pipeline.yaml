@@ -15,9 +15,12 @@ spec:
       description: Name of the application
       name: APP_NAME
       type: string
-    - default: 'image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest'
+    - default: "image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest"
       description: The name of the image to build
       name: IMAGE_NAME
+      type: string
+    - name: BASE_URL
+      description: The base URL of the deployed application for BDD tests
       type: string
   tasks:
     - name: git-clone
@@ -25,33 +28,33 @@ spec:
         - name: CRT_FILENAME
           value: ca-bundle.crt
         - name: HTTP_PROXY
-          value: ''
+          value: ""
         - name: HTTPS_PROXY
-          value: ''
+          value: ""
         - name: NO_PROXY
-          value: ''
+          value: ""
         - name: SUBDIRECTORY
-          value: ''
+          value: ""
         - name: USER_HOME
           value: /home/git
         - name: DELETE_EXISTING
-          value: 'true'
+          value: "true"
         - name: VERBOSE
-          value: 'false'
+          value: "false"
         - name: SSL_VERIFY
-          value: 'true'
+          value: "true"
         - name: URL
           value: $(params.GIT_REPO)
         - name: REVISION
           value: $(params.GIT_REF)
         - name: REFSPEC
-          value: ''
+          value: ""
         - name: SUBMODULES
-          value: 'true'
+          value: "true"
         - name: DEPTH
-          value: '1'
+          value: "1"
         - name: SPARSE_CHECKOUT_DIRECTORIES
-          value: ''
+          value: ""
       taskRef:
         params:
           - name: kind
@@ -67,7 +70,7 @@ spec:
     - name: pylint
       params:
         - name: image
-          value: 'quay.io/rofrano/python:3.11-slim'
+          value: "quay.io/rofrano/python:3.11-slim"
         - name: path
           value: service
         - name: args
@@ -106,7 +109,7 @@ spec:
           value: ./Dockerfile
         - name: BUILD_ARGS
           value:
-            - ''
+            - ""
         - name: CONTEXT
           value: .
         - name: STORAGE_DRIVER
@@ -114,15 +117,15 @@ spec:
         - name: FORMAT
           value: oci
         - name: BUILD_EXTRA_ARGS
-          value: ''
+          value: ""
         - name: PUSH_EXTRA_ARGS
-          value: ''
+          value: ""
         - name: SKIP_PUSH
-          value: 'false'
+          value: "false"
         - name: TLS_VERIFY
-          value: 'true'
+          value: "true"
         - name: VERBOSE
-          value: 'false'
+          value: "false"
       runAfter:
         - pylint
         - testing
@@ -149,6 +152,18 @@ spec:
       taskRef:
         kind: Task
         name: deploy-image
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: bdd-tests
+      params:
+        - name: base-url
+          value: $(params.BASE_URL)
+      runAfter:
+        - deploy-image
+      taskRef:
+        kind: Task
+        name: behave
       workspaces:
         - name: source
           workspace: pipeline-workspace

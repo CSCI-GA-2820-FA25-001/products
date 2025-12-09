@@ -4,30 +4,31 @@ metadata:
   name: cd-template
 spec:
   params:
-  - name: git-repo-url
-    description: The git repository url
-  - name: git-revision
-    description: The git revision
-  - name: git-repo-name
-    description: The name of the deployment to be created / patched
-
+    - name: git-repo-name
+      description: The git repository name
+    - name: git-repo-url
+      description: The git repository url
+    - name: git-revision
+      description: The git revision
+      default: master
   resourcetemplates:
-  - apiVersion: tekton.dev/v1beta1
-    kind: PipelineRun
-    metadata:
-      generateName: cd-pipeline-$(tt.params.git-repo-name)-
-    spec:
-      serviceAccountName: pipeline
-      pipelineRef:
-        name: cd-pipeline
-      params:
-      - name: APP_NAME
-        value: $(tt.params.git-repo-name)
-      - name: GIT_REPO
-        value: $(tt.params.git-repo-url)
-      - name: IMAGE_NAME
-        value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):$(tt.params.git-revision)
-      workspaces:
-      - name: pipeline-workspace
-        persistentVolumeClaim:
-          claimName: pipeline-pvc
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: cd-pipeline-run-
+      spec:
+        pipelineRef:
+          name: cd-pipeline
+        params:
+          - name: APP_NAME
+            value: $(tt.params.git-repo-name)
+          - name: GIT_REPO
+            value: $(tt.params.git-repo-url)
+          - name: IMAGE_NAME
+            value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):$(tt.params.git-revision)
+          - name: BASE_URL
+            value: http://$(tt.params.git-repo-name):8080
+        workspaces:
+          - name: pipeline-workspace
+            persistentVolumeClaim:
+              claimName: pipeline-pvc
